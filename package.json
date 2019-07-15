@@ -1,0 +1,27 @@
+{
+  "name": "patchwork",
+  "version": "0.1.0",
+  "description": "Manage custom code changes as patches to keep them safe from updates and out of functions.php",
+  "main": "admin.js",
+  "scripts": {
+    "build": "webpack ./app",
+    "lint": "eslint ./app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JarredKennedy/PatchWork.git"
+  },
+  "author": "Jarred Kennedy",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/JarredKennedy/PatchWork/issues"
+  },
+  "homepage": "https://github.com/JarredKennedy/PatchWork#readme",
+  "devDependencies": {
+    "webpack": "^4.26.1"
+  },
+  "dependencies": {
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3"
+  }
+}
