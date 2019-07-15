@@ -3,6 +3,7 @@ _All integer values are unsigned, unless otherwise indicated._
 
 ## Header
 The header section is the first section of the patch file.
+
 | Field ID | Field | Type | Description | Value(s) | Length (bytes) | Example(s) |
 | --- | --- | --- | --- | --- | --- | --- |
 | H.0 | Patch file magic number | char | The magic number identifies the file as a PatchWork patch file | 1F 50 41 54 43 48 1A | 7 | 1F 50 41 54 43 48 1A |
@@ -41,6 +42,7 @@ of changed lines. Changed lines for the original and the modified version are in
 ### Diff Block: Body
 Contains a list of line change entries, which are consecutive changed lines.  
 **Line Change Entry**
+
 | Field ID | Field | Type | Description | Value(s) | Length (bytes) | Example(s) |
 | --- | --- | --- | --- | --- | --- | --- |
 | DBB.0 | Original file start line | short | Number of the line which marks the first changed line in this entry in the original file | _variable_ | 2 | 100 |
