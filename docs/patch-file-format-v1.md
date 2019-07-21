@@ -1,5 +1,6 @@
 # Patch File Format v1
-_All integer values are unsigned, unless otherwise indicated._
+- All integer values are unsigned, unless otherwise indicated.
+- All strings are to be encoded as UTF-8 and the string lengths are expressed in bytes, not characters.
 
 ## Header
 The header section is the first section of the patch file.
