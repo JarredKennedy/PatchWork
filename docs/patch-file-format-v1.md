@@ -9,19 +9,19 @@ The header section is the first section of the patch file.
 | H.0 | Patch file magic number | char | The magic number identifies the file as a PatchWork patch file | 1F 50 41 54 43 48 1A | 7 | 1F 50 41 54 43 48 1A |
 | H.1 | Patch file format version | char | The patch file format version of the data in the patch file | 1 | 1 | 1 |
 | H.2 | Diff blocks offset | short | The byte offset of the start of the diff block section | _variable_ | 2 | 264 |
-| H.3 | Target asset identifier length | char | The length of the Target Asset Identifier (H.5) | _variable_ | 1 | 22 |
-| H.4 | Target asset identifier | string | String identifying the asset this patch targets | _variable_ | _value of H.2_ | plugin:patchwork:1.0.0 |
+| H.3 | Target asset identifier length | char | The length of the Target Asset Identifier (H.4) | _variable_ | 1 | 22 |
+| H.4 | Target asset identifier | string | String identifying the asset this patch targets | _variable_ | _value of H.3_ | plugin:patchwork:1.0.0 |
 | H.5 | Vendor ID length | char | The length of the vendor ID field (H.6) | _variable_ | 1 | 23 |
-| H.6 | Vendor ID | string | The vendor ID. String representing the vendor in reverse domain name notation | _variable_ | _value of H.4_ | app.patchwork.PatchWork |
+| H.6 | Vendor ID | string | The vendor ID. String representing the vendor in reverse domain name notation | _variable_ | _value of H.5_ | app.patchwork.PatchWork |
 | H.7 | Deprecation trigger version | string | A version expression. When the target asset version satisfies this expression, the patch is deactivated | _variable_ | 30 | >=1.1.0, next, 1.0.1 |
 | H.8 | Deprecation policy | char | Determines which deprecation check to use when an update introduces changes to any line(s) changed by the patch. _Note: Update Protection is not enforced for deactivated patches._ | **0** The patch is not deactivated regardless of changes<br> **1** The patch will be deactivated if the set of changes in the patch are identically matched in the updated asset<br> **2** The patch will be deactivated if the set of changes in the patch are similarly matched in the updated asset. (see [Glossary: Similarity](./glossary.md#Patch-Similarity)) | 1 | 2 |
 | H.9 | Signature | char | Signature for the patch file, signed with the PatchWork private key | _variable_ | 128 | --- |
-| H.10 | Author name length | char | The length of the author field (H.10) | _variable_ | 1 | 9 |
-| H.11 | Author name | string | The author of the patch | _variable_ | _value of H.8_ | PatchWork |
-| H.12 | Author url length | char | The length of the author url (H.12) | _variable_ | 1 | 21 |
-| H.13 | Author url | string | The url of the patch author | _variable_ | _value of H.10_ | https://patchwork.dev |
-| H.14 | Patch description length | char | The length of the patch description field (H.14) | _variable_ | 1 | 12 |
-| H.15 | Patch description | string | A description of what the patch does | _variable_ | _value of H.12_ | Does a thing |
+| H.10 | Author name length | char | The length of the author field (H.11) | _variable_ | 1 | 9 |
+| H.11 | Author name | string | The author of the patch | _variable_ | _value of H.10_ | PatchWork |
+| H.12 | Author url length | char | The length of the author url (H.13) | _variable_ | 1 | 21 |
+| H.13 | Author url | string | The url of the patch author | _variable_ | _value of H.12_ | https://patchwork.dev |
+| H.14 | Patch description length | char | The length of the patch description field (H.15) | _variable_ | 1 | 12 |
+| H.15 | Patch description | string | A description of what the patch does | _variable_ | _value of H.14_ | Does a thing |
 | H.16 | Patch creation timestamp | long | 32bit unix timestamp representing when the patch was created | _variable_ | 4 | 1546300800 |
 
 ## Diff Blocks
