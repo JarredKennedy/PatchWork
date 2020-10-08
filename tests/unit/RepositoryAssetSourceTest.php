@@ -5,8 +5,8 @@ class RepositoryAssetSourceTest extends PHPUnit\Framework\TestCase {
 	public function test_get_file_tree() {
 
 		$asset_info = include SUPPORT_DIR . 'plugin-info.php';
-		$cdh = include SUPPORT_DIR . 'plugin-cdh-extracted.php';
 		$expected_file_tree = include SUPPORT_DIR . 'plugin-file-tree.php';
+		$expected_file_tree = unserialize( $expected_file_tree );
 
 		$asset = $this->getMockBuilder( PatchWork\Asset::class )
 			->setMethods(['get_id', 'get_version', 'get_name', 'get_type', 'get_slug'])
@@ -31,7 +31,7 @@ class RepositoryAssetSourceTest extends PHPUnit\Framework\TestCase {
 				$this->equalTo( $asset ),
 				$this->equalTo( $asset_info['download_link'] )
 			)
-			->will( $this->returnValue( $cdh ) );
+			->will( $this->returnValue( $expected_file_tree ) );
 
 		$source = new PatchWork\Asset_Source\Repository_Asset_Source( $asset, $repository );
 
