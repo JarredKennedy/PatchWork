@@ -1,0 +1,27 @@
+@import './variables.scss';
+
+.pw__scan-screen {
+
+	margin: 0 auto;
+	width: 550px;
+	background-color: white;
+
+	>div {
+		box-sizing: border-box;
+	}
+
+	.header {
+		background-color: $pwPrimary;
+		color: $pwPrimaryText;
+		padding: 0.65rem 1rem;
+		text-align: center;
+		font-size: 1.15rem;
+	}
+
+	.body {
+		border: 1px solid #DFDFDF;
+		border-top-width: 0;
+		padding: 1rem 1.2rem;
+	}
+
+}

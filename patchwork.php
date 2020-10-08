@@ -7,10 +7,9 @@
  *
  * @wordpress-plugin
  * Plugin Name: PatchWork
- * Plugin URI: https://wordpress.org/plugins/patchwork#hopefully
+ * Plugin URI: https://{store-url}/patchwork
  * Description: Manage custom code changes as patches to keep them safe from updates and out of functions.php
  * Author: Jarred Kennedy
- * Author URI: https://jarredkennedy.com/FOSS/PatchWork
  * Version: 1.0.0-alpha
  * Requires PHP: 5.4
  * Text Domain: patchwork
@@ -90,15 +89,16 @@ final class PatchWork {
 
 		require_once PATCHWORK_PATH . 'autoload.php';
 
-		if ( function_exists( 'register_rest_route' ) ) {
-			require_once PATCHWORK_PATH . 'includes/rest-api-controller.php';
-		} else {
-			require_once PATCHWORK_PATH . 'includes/admin-ajax-api-controller.php';
-		}
+		// if ( function_exists( 'register_rest_route' ) ) {
+		// 	require_once PATCHWORK_PATH . 'includes/rest-api-controller.php';
+		// } else {
+		// 	require_once PATCHWORK_PATH . 'includes/admin-ajax-api-controller.php';
+		// }
 
-		require_once PATCHWORK_PATH . 'includes/admin-menu.php';
-		require_once PATCHWORK_PATH . 'includes/patch-api.php';
-		require_once PATCHWORK_PATH . 'includes/asset-api.php';
+		require_once PATCHWORK_PATH . 'includes/admin/admin-menu.php';
+		require_once PATCHWORK_PATH . 'includes/patchwork-utilities.php';
+		// require_once PATCHWORK_PATH . 'includes/patch-api.php';
+		// require_once PATCHWORK_PATH . 'includes/asset-api.php';
 	}
 
 	/**
@@ -110,11 +110,6 @@ final class PatchWork {
 	 * @return bool
 	 */
 	public function check_environment() {
-		// PatchWork only needs to run in the admin.
-		if ( ! is_admin() ) {
-			return false;
-		}
-
 		if ( version_compare( PHP_VERSION, '5.4.0' ) < 0 ) {
 			add_action( 'admin_notices', function() {
 				sprint( '<div class="notice notice-warning"><p>' . __( 'PatchWork requires PHP version 5.4 or higher', 'patchwork' ) . '</p></div>' );

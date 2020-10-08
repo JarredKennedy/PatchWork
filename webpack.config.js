@@ -1,15 +1,59 @@
 const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const WPDependencyExtraction = require('@wordpress/dependency-extraction-webpack-plugin');
 
 module.exports = {
-	entry: path.resolve(__dirname, "app"),
+	entry: {
+		app: './app/src/app.js'
+	},
 
 	output: {
-		path: path.resolve(__dirname, "app/packages"),
+		path: path.resolve(__dirname, 'app/dist'),
 
-		filename: "admin.min.js",
+		filename: '[name].js',
 
-		library: 'this',
+		library: [ 'patchwork', '[name]' ],
 
-		libraryTarget: [ 'patchwork', '[name]' ]
-	}
+		libraryTarget: 'this'
+	},
+
+	module: {
+		rules: [
+			{
+				test: /\.jsx?$/,
+				loader: "babel-loader",
+				exclude: /node_modules/,
+				options: {
+					rootMode: "upward",
+				}
+			},
+			{
+				test: /\.*css$/,
+				use: [
+					{
+						loader: MiniCssExtractPlugin.loader,
+						options: {
+							publicPath: path.resolve(__dirname, "app/dist")
+						}
+					},
+					"css-loader",
+					{
+						loader: 'sass-loader',
+						options: {
+							implementation: require('sass')
+						}
+					}
+				]
+			}
+		]
+	},
+
+	plugins: [
+		new MiniCssExtractPlugin({
+			filename: '[name].css',
+			chunkFilename: '[id].css',
+			ignoreOrder: false
+		}),
+		new WPDependencyExtraction()
+	]
 };

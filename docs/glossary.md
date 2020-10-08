@@ -56,3 +56,13 @@ Update Protection is a service provided by the plugin to prevent assets from upd
 Two sets of changes are considered similar if any of the following conditions are true:
 - The changes are identical without considering whitespace, or
 - The more recent set of changes is a superset of the patch changes.
+
+---
+
+## Central Directory Header (CDH)
+A central directory header is series of bytes in a zip archive describing a file or directory within the archive. There is one CDH for each file and directory. A CDH entry contains:  
+- A checksum for the file
+- The length of the file name and the file name itself
+- The compressed and uncompressed size of the file
+- The byte offset of where the local file header for this file can be found in the archive
+- See .ZIP File Format Specification section 4.3.12 for a full list of fields

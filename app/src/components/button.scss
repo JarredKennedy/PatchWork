@@ -1,0 +1,20 @@
+@import './variables.scss';
+
+button.pw__button {
+	
+	background-color: $pwSubtle;
+	border: 0;
+	color: #2A2A2A;
+	height: 2.5rem;
+	line-height: 2.5rem;
+	padding: 0 0.5rem;
+	text-align: center;
+	font-size: 1.2rem;
+	cursor: pointer;
+
+	&.primary {
+		background-color: $pwPrimary;
+		color: $pwPrimaryText;
+	}
+
+}

@@ -24,6 +24,7 @@ The header section is the first section of the patch file.
 | H.14 | Patch description length | char | The length of the patch description field (H.15) | _variable_ | 1 | 12 |
 | H.15 | Patch description | string | A description of what the patch does | _variable_ | _value of H.14_ | Does a thing |
 | H.16 | Patch creation timestamp | long | 32bit unix timestamp representing when the patch was created | _variable_ | 4 | 1546300800 |
+| H.17 | Patch checksum | char | SHA-256 hash of the patch file. Calculated with NULL bytes for this field | _variable_ | 32 | 2E 99 75 85 48 97 2A 8E 88 22 AD 47 FA 10 17 FF 72 F0 6F 3F F6 A0 16 85 1F 45 C3 98 73 2B C5 0C |
 
 ## Diff Blocks
 A patch file contains at least one diff block. There is one diff block per changed file. Diff blocks have a header which contains some metadata, such as the name of the file.
@@ -50,3 +51,7 @@ Contains a list of line change entries, which are consecutive changed lines.
 | DBB.1 | Original file changed lines | short | Number of the lines changed for this entry in the original file | _variable_ | 2 | 100 |
 | DBB.2 | Patched file start line | short | Number of the line which marks the first changed line in this entry in the patched file | _variable_ | 2 | 100 |
 | DBB.3 | Patched file changed lines | short | Number of the lines changed for this entry in the patched file | _variable_ | 2 | 100 |
+| DBB.4 | Original lines length | long | The number of bytes changed (deleted) from the original file | _variable_ | 4 | 14 |
+| DBB.5 | Original lines | string | The affected lines as they were in the original file (includes newline characters) | _variable_ | _value of DBB.4_ | Cello, World! |
+| DBB.6 | Patched lines length | long | The number of lines modified (inserted) to replace the original lines | _variable_ | 4 | 14 |
+| DBB.7 | Patched lines | string | The updated lines as they should be after the patch is applied (includes newline characters) | _variable_ | _value of DBB.6_ | Hello, World! |

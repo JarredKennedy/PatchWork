@@ -1,0 +1,90 @@
+@import './variables.scss';
+
+div.pw__add-patch-option {
+
+	flex: 0 0 350px;
+	height: 550px;
+	background-color: #FFFFFF;
+	margin: 0;
+	padding: 0;
+
+	>div {
+		box-sizing: border-box;
+	}
+
+	.header {
+		background-color: $pwPrimary;
+		color: $pwPrimaryText;
+		text-align: center;
+		height: 60px;
+		line-height: 60px;
+		vertical-align: middle;
+		font-size: 1.6rem;
+		font-weight: 300;
+	}
+
+	.internal {
+		padding: 1.5rem;
+		border: 1px solid #DFDFDF;
+		height: 490px;
+		
+		>p {
+			margin: 0;
+			padding: 0;
+			color: inherit;
+			font: inherit;
+		}
+
+		p.shortDescription {
+			font-size: 1.05rem;
+			text-align: center;
+			line-height: 1.65rem;
+			height: 80px;
+			overflow: hidden;
+		}
+
+		p.icon {
+			text-align: center;
+			height: 100px;
+
+			img {
+				width: 80px;
+				height: 80px;
+			}
+		}
+
+		p.action {
+			text-align: center;
+			height: 80px;
+			position: relative;
+
+			button {
+				position: absolute;
+				bottom: 5px;
+				left: 15%;
+				width: 70%;
+				border-radius: 0.5rem;
+			}
+		}
+
+		p.fullDescription {
+			font-size: 1.05rem;
+			text-align: left;
+			line-height: 1.65rem;
+			overflow: hidden;
+			padding: 0.75rem;
+		}
+
+		hr.separator {
+			display: block;
+			width: 100%;
+			border: 0;
+			border-top: 1.5px solid #CCCCCC;
+			border-bottom: 1.5px solid #CCCCCC;
+			background-color: #CCCCCC;
+			margin: 10px 0;
+		}
+
+	}
+
+}
