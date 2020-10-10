@@ -419,7 +419,6 @@ function patchwork_file_trees_equal( PatchWork\Types\File_Tree $tree_a = null, P
 			return true;
 		}
 		
-		die("Not equal because no tree_a");
 		return false;
 	}
 
@@ -434,7 +433,6 @@ function patchwork_file_trees_equal( PatchWork\Types\File_Tree $tree_a = null, P
 					|| $node_a->first_child && ! $node_b->first_child
 					|| $node_b->first_child && ! $node_a->first_child
 				) {
-					die(var_dump("Not equal because checksum or child mismatch for " . $node_a->name, $node_a->checksum, $node_b->checksum));
 					return false;
 				}
 
