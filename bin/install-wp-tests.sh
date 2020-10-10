@@ -16,6 +16,7 @@ TMPDIR=${TMPDIR-/tmp}
 TMPDIR=$(echo $TMPDIR | sed -e "s/\/$//")
 WP_TESTS_DIR=${WP_TESTS_DIR-$TMPDIR/wordpress-tests-lib}
 WP_CORE_DIR=${WP_CORE_DIR-$TMPDIR/wordpress/}
+WP_PLUGINS_DIR=$WP_CORE_DIR/wp-content/plugins
 
 download() {
     if [ `which curl` ]; then
@@ -150,6 +151,24 @@ install_db() {
 	mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
 }
 
+install_plugins() {
+	declare -a Plugins=("https://downloads.wordpress.org/plugins/gn-publisher.1.0.5.zip" "https://downloads.wordpress.org/plugin/google-sitemap-generator.4.1.1.zip")
+ 
+	for val in "${Plugins[@]}"; do
+		local PLUGIN_FILE=$(basename $val)
+		local PLUGIN_NAME=$(echo $PLUGIN_FILE | sed "s:\.zip::")
+
+		if [ -d $WP_PLUGINS_DIR/$PLUGIN_NAME/ ]; then
+			continue;
+		fi
+
+		download $val $WP_PLUGINS_DIR/$PLUGIN_FILE
+		unzip -q $WP_PLUGINS_DIR/$PLUGIN_FILE -d $WP_PLUGINS_DIR/$PLUGIN_NAME/
+		mv $WP_PLUGINS_DIR/$PLUGIN_NAME/* $WP_PLUGINS_DIR/
+	done
+}
+
 install_wp
 install_test_suite
 install_db
+install_plugins
