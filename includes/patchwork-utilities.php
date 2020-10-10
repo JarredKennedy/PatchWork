@@ -179,16 +179,280 @@ function patchwork_cdh_to_file_tree( $cdh_list ) {
 }
 
 /**
- * Computes a file tree representing the nodes that differ between
- * the two input file trees.
+ * Given two file trees, compute a tree of their differences. The input trees
+ * will be sorted in this function.
  * 
  * @since 0.1.0
  * 
  * @param PatchWork\Types\File_Tree $tree_a
  * @param PatchWork\Types\File_Tree $tree_b
  * 
- * @return PatchWork\Types\File_Tree
+ * @return PatchWork\Types\File_Tree_Diff|null
  */
-function patchwork_diff_file_trees( PatchWork\Types\File_Tree $tree_a, PatchWork\Types\File_Tree $tree_b ) {
+function patchwork_diff_file_trees( PatchWork\Types\File_Tree $tree_a = null, PatchWork\Types\File_Tree $tree_b = null ) {
+	$tree_a = patchwork_sort_file_tree( $tree_a );
+	$tree_b = patchwork_sort_file_tree( $tree_b );
 
+	$diff = null;
+	$last = null;
+
+	$node_a = $tree_a;
+	$node_b = $tree_b;
+
+	while ( $node_a || $node_b ) {
+		$node = null;
+
+		if ( ! $node_a ) {
+			// tree_b has node_b and tree_a doesn't.
+			// Something has been added.
+			$node = new PatchWork\Types\File_Tree_Diff();
+			$node->name = $node_b->name;
+			$node->checksum = $node_b->checksum;
+			$node->status = PatchWork\Types\File_Tree_Diff::CHANGE_ADDED;
+
+			// recurse for added node_b->first_child
+			if ( $node_b->first_child ) {
+				$child = patchwork_diff_file_trees( null, $node_b->first_child );
+
+				if ( $child ) {
+					$node->first_child = $child;
+				}
+			}
+
+			$node_b = $node_b->sibling;
+		} elseif ( ! $node_b ) {
+			// tree_a has node_a and tree_b doesn't.
+			// Soemthing has been removed.
+			$node = new PatchWork\Types\File_Tree_Diff();
+			$node->name = $node_a->name;
+			$node->checksum = $node_a->checksum;
+			$node->status = PatchWork\Types\File_Tree_Diff::CHANGE_REMOVED;
+
+			// recurse for deleted node_a->first_child
+			if ( $node_a->first_child ) {
+				$child = patchwork_diff_file_trees( $node_a->first_child, null );
+
+				if ( $child ) {
+					$node->first_child = $child;
+				}
+			}
+
+			$node_a = $node_a->sibling;
+		} elseif ( $node_a->name == $node_b->name ) {
+
+			if ( $node_a->checksum != $node_b->checksum ) {
+				// node_a exists in tree_b, but has been modified.
+				$node = new PatchWork\Types\File_Tree_Diff();
+				$node->name = $node_a->name;
+				$node->checksum = $node_a->checksum;
+				$node->status = PatchWork\Types\File_Tree_Diff::CHANGE_MODIFIED;
+
+				// Any two nodes with differing checksums could not be directories
+				// so there's no need to check for children.
+			} elseif ( $node_a->first_child ) {
+				$child = patchwork_diff_file_trees( $node_a->first_child, $node_b->first_child );
+
+				if ( $child ) {
+					$node = new PatchWork\Types\File_Tree_Diff();
+					$node->name = $node_a->name;
+					$node->checksum = $node_a->checksum;
+					$node->status = PatchWork\Types\File_Tree_Diff::UNCHANGED;
+					$node->first_child = $child;
+				}
+
+			}
+
+			$node_a = $node_a->sibling;
+			$node_b = $node_b->sibling;
+		} else {
+			if ( strcmp( $node_a->name, $node_b->name ) < 1 ) {
+				// node_a has been deleted
+				$node = new PatchWork\Types\File_Tree_Diff();
+				$node->name = $node_a->name;
+				$node->checksum = $node_a->checksum;
+				$node->status = PatchWork\Types\File_Tree_Diff::CHANGE_REMOVED;
+
+				// recurse for deleted node_a->first_child
+				if ( $node_a->first_child ) {
+					$child = patchwork_diff_file_trees( $node_a->first_child, null );
+	
+					if ( $child ) {
+						$node->first_child = $child;
+					}
+				}
+
+				$node_a = $node_a->sibling;
+			} else {
+				// node_b has been added
+				$node = new PatchWork\Types\File_Tree_Diff();
+				$node->name = $node_b->name;
+				$node->checksum = $node_b->checksum;
+				$node->status = PatchWork\Types\File_Tree_Diff::CHANGE_ADDED;
+
+				// recurse for added node_b->first_child
+				if ( $node_b->first_child ) {
+					$child = patchwork_diff_file_trees( null, $node_b->first_child );
+	
+					if ( $child ) {
+						$node->first_child = $child;
+					}
+				}
+
+				$node_b = $node_b->sibling;
+			}
+		}
+
+		if ( $node ) {
+			if ( $diff ) {
+				$last->sibling = $node;
+			} else {
+				$diff = $node;
+			}
+
+			$last = $node;
+		}
+
+	}
+
+	return $diff;
+}
+
+function patchwork_sort_file_tree( $tree ) {
+	$tree = patchwork_shallow_sort_file_tree( $tree );
+
+	$node = $tree;
+	while ( $node ) {
+		if ( $node->first_child ) {
+			$node->first_child = patchwork_sort_file_tree( $node->first_child );
+		}
+
+		$node = $node->sibling;
+	}
+
+	return $tree;
+}
+
+function patchwork_shallow_sort_file_tree( $tree ) {
+	if ( ! $tree || ! $tree->sibling ) {
+		return $tree;
+	}
+
+	$slow = $tree;
+	$fast = $tree;
+
+	while ( $fast->sibling && $fast->sibling->sibling ) {
+		$slow = $slow->sibling;
+		$fast = $fast->sibling->sibling;
+	}
+
+	$middle = $slow->sibling;
+	$slow->sibling = null;
+
+	$left = patchwork_shallow_sort_file_tree( $tree );
+	$right = patchwork_shallow_sort_file_tree( $middle );
+
+	$tree = patchwork_file_tree_sorted_merge( $left, $right );
+
+	return $tree;
+}
+
+// function patchwork_file_tree_sorted_merge( $tree_a, $tree_b ) {
+// 	$result = null;
+
+// 	if ( ! $tree_a ) {
+// 		return $tree_b;
+// 	}
+
+// 	if ( ! $tree_b ) {
+// 		return $tree_a;
+// 	}
+
+// 	if ( strcmp( $tree_a->name, $tree_b->name ) < 1 ) {
+// 		$result = $tree_a;
+// 		$result->sibling = patchwork_file_tree_sorted_merge( $tree_a->sibling, $tree_b );
+// 	} else {
+// 		$result = $tree_b;
+// 		$result->sibling = patchwork_file_tree_sorted_merge( $tree_a, $tree_b->sibling );
+// 	}
+
+// 	return $result;
+// }
+
+function patchwork_file_tree_sorted_merge( $tree_a, $tree_b ) {
+	$dummy = new PatchWork\Types\File_Tree;
+	$tail = $dummy;
+
+	$dummy->sibling = null;
+
+	while ( true ) {
+		if ( ! $tree_a ) {
+			$tail->sibling = $tree_b;
+			break;
+		}
+
+		if ( ! $tree_b ) {
+			$tail->sibling = $tree_a;
+			break;
+		}
+
+		if ( strcmp( $tree_a->name, $tree_b->name ) < 1 ) {
+			$temp = $tree_a;
+			$tree_a = $temp->sibling;
+			$temp->sibling = $tail->sibling;
+			$tail->sibling = $temp;
+		} else {
+			$temp = $tree_b;
+			$tree_b = $temp->sibling;
+			$temp->sibling = $tail->sibling;
+			$tail->sibling = $temp;
+		}
+
+		$tail = $tail->sibling;
+	}
+
+	return $dummy->sibling;
+}
+
+function patchwork_file_trees_equal( PatchWork\Types\File_Tree $tree_a = null, PatchWork\Types\File_Tree $tree_b = null ) {
+	if ( ! $tree_a ) {
+		if ( ! $tree_b ) {
+			return true;
+		}
+		
+		die("Not equal because no tree_a");
+		return false;
+	}
+
+	$node_a = $tree_a;
+	while ( $node_a ) {
+		$node_b = $tree_b;
+		while ( $node_b ) {
+
+			if ( $node_a->name == $node_b->name ) {
+				if (
+					$node_a->checksum != $node_b->checksum
+					|| $node_a->first_child && ! $node_b->first_child
+					|| $node_b->first_child && ! $node_a->first_child
+				) {
+					die(var_dump("Not equal because checksum or child mismatch for " . $node_a->name, $node_a->checksum, $node_b->checksum));
+					return false;
+				}
+
+				if ( $node_a->first_child ) {
+					if ( ! patchwork_file_trees_equal( $node_a->first_child, $node_b->first_child ) ) {
+						return false;
+					}
+				}
+
+				$node_a = $node_a->sibling;
+				continue 2;
+			}
+
+			$node_b = $node_b->sibling;
+		}
+
+		$node_a = $node_a->sibling;
+	}
+
+	return true;
 }
