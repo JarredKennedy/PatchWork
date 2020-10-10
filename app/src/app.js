@@ -9,6 +9,7 @@ import {
 import PatchesPage from './components/pages/patches-page'
 import AddPatchPage from './components/pages/add-patch-page'
 import ScanPage from './components/pages/scan-page'
+import SettingsPage from './components/pages/settings-page'
 
 (function() {
 	// window.patchwork.apiClient.init(); // Init the PatchWork API client.
@@ -35,6 +36,9 @@ import ScanPage from './components/pages/scan-page'
 				</Route>
 				<Route path="/add-patch">
 					<AddPatchPage currentPage="add-patch" />
+				</Route>
+				<Route path="">
+					<SettingsPage />
 				</Route>
 			</Switch>
 		</Router>

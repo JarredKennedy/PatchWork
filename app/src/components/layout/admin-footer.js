@@ -5,6 +5,10 @@ const AdminFooter = (props) => (
 
 		<div className="logo">
 			<img src={`${window.patchwork.pw_url}/app/images/pwmain.png`} />
+
+			<div className="identity">
+				<span>{`PatchWork v${window.patchwork.pw_version}`}</span>
+			</div>
 		</div>
 
 	</footer>
