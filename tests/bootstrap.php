@@ -31,3 +31,5 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 require $_tests_dir . '/includes/bootstrap.php';
 
 define( 'SUPPORT_DIR', dirname( __FILE__ ) . '/support/' );
+
+require_once SUPPORT_DIR . 'functions.php';
