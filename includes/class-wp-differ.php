@@ -3,6 +3,11 @@
 namespace PatchWork;
 
 use \Text_Diff;
+use \Text_Diff_Op_copy;
+use \Text_Diff_Op_add;
+use \Text_Diff_Op_change;
+use \Text_Diff_Op_delete;
+use PatchWork\Types\Diff_OP;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -35,15 +40,16 @@ class WP_Differ implements Differ {
 	 * 
 	 * @since 0.1.0
 	 * 
-	 * @param array<string> $original_lines
-	 * @param array<string> $current_lines
+	 * @param string[] $original_lines
+	 * @param string[] $current_lines
 	 * 
 	 * @return PatchWork\Diff
 	 */
 	public function diff( $original_lines, $current_lines ) {
 		$text_diff = new Text_Diff( 'auto', array( $original_lines, $current_lines ) );
 
-		$diff = $this->text_diff_to_pw_diff( $text_diff->getDiff() );
+		$diff = $text_diff->getDiff();
+		$diff = $this->text_diff_to_pw_diff( $diff );
 
 		return $diff;
 	}
@@ -55,12 +61,90 @@ class WP_Differ implements Differ {
 	 * 
 	 * @since 0.1.0
 	 * 
-	 * @param array $edits
+	 * @param \Text_Diff[] $text_diffs
 	 * 
 	 * @return PatchWork\Diff
 	 */
-	protected function text_diff_to_pw_diff( $edits ) {
-		
+	protected function text_diff_to_pw_diff( $text_diffs ) {
+		$diff = new Diff();
+
+		$original_line_no = 1;
+		$patched_line_no = 1;
+		foreach ( $text_diffs as $text_diff ) {
+			$count = 0;
+			
+			if ( $text_diff instanceof Text_Diff_Op_copy ) {
+				$count = count( $text_diff->orig );
+				$original_line_no += $count;
+				$patched_line_no += $count;
+
+				continue;
+			}
+
+			if ( $text_diff instanceof Text_Diff_Op_add ) {
+				$op = new Diff_OP();
+				$op->op = Diff_OP::OP_ADD;
+
+				if ( isset( $text_diff->final ) && ! empty( $text_diff->final ) ) {
+					$op->patched = $text_diff->final;
+					$count = count( $op->patched );
+				}
+
+				$op->original_line_start = $original_line_no;
+				$op->original_lines_effected = 0;
+				$op->patched_line_start = $patched_line_no;
+				$op->patched_lines_effected = $count;
+
+				$patched_line_no += $count;
+
+				$diff->add_op( $op );
+			} elseif ( $text_diff instanceof Text_Diff_Op_delete ) {
+				$op = new Diff_OP();
+				$op->op = Diff_OP::OP_DELETE;
+
+				if ( isset( $text_diff->orig ) && ! empty( $text_diff->orig ) ) {
+					$op->original = $text_diff->orig;
+					$count = count( $text_diff->orig );
+				}
+
+				$op->original_line_start = $original_line_no;
+				$op->original_lines_effected = $count;
+				$op->patched_line_start = $patched_line_no;
+				$op->patched_lines_effected = 0;
+
+				$original_line_no += $count;
+
+				$diff->add_op( $op );
+			} elseif ( $text_diff instanceof Text_Diff_Op_change ) {
+				$op = new Diff_OP();
+				$op->op = Diff_OP::OP_CHANGE;
+
+				if ( isset( $text_diff->orig ) && ! empty( $text_diff->orig ) ) {
+					$op->original = $text_diff->orig;
+					$count = count( $text_diff->orig );
+				}
+
+				$op->original_line_start = $original_line_no;
+				$op->original_lines_effected = $count;
+
+				$original_line_no += $count;
+
+				if ( isset( $text_diff->final ) && ! empty( $text_diff->final ) ) {
+					$op->patched = $text_diff->final;
+					$count = count( $text_diff->final );
+				}
+
+				$op->patched_line_start = $patched_line_no;
+				$op->patched_lines_effected = $count;
+
+				$patched_line_no += $count;
+
+				$diff->add_op( $op );
+			}
+
+		}
+
+		return $diff;
 	}
 
 }
