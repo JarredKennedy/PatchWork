@@ -87,7 +87,9 @@ class Installed_Asset_Source implements Asset_Source {
 	}
 
 	public function get_file( $file_path ) {
-		return null; // stub
+		$file = @fopen( $this->directory . $file_path, 'r+' );
+
+		return $file;
 	}
 
 	public function get_file_checksum( $file_path ) {

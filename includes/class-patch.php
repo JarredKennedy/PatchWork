@@ -2,51 +2,40 @@
 
 namespace PatchWork;
 
+use PatchWork\Types\Patch_Header;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 class Patch {
 
-	protected $patch_file_path;
-
-	protected $asset;
-
-	protected $file_hash;
+	/**
+	 * @var PatchWork\Types\Patch_Header The header of this patch.
+	 */
+	protected $header;
 
 	/**
-	 * Constructor.
-	 * 
-	 * @param string $patch_id sha256 ID of the patch
+	 * @var PatchWork\Diff[] Diffs in this patch
 	 */
-	public function __construct( $patch_file ) {
-		$this->patch_file = $patch_file;
+	protected $diffs;
+
+	public function __construct( Patch_Header $header, $diffs = array() ) {
+		$this->header = $header;
+
+		$diffs = array_filter( (array) $diffs, function( $diff ) {
+			return ( $diff instanceof Diff );
+		} );
+
+		$this->diffs = $diffs;
 	}
 
-	/**
-	 * Apply the patch to the target asset.
-	 * 
-	 * @since 1.0.0
-	 */
-	public function apply() {
-
+	public function get_header() {
+		return $this->header;
 	}
 
-	/**
-	 * Restore the assets files to the state they were before the patch was applied.
-	 * 
-	 * @since 1.0.0
-	 */
-	public function undo() {
-
+	public function get_diffs() {
+		return $this->diffs;
 	}
-
-	public function get_hash() {
-		return $this->file_hash;
-	}
-
-	/**
-	 * 
-	 */
 
 }

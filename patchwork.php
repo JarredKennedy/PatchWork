@@ -97,6 +97,7 @@ final class PatchWork {
 
 		require_once PATCHWORK_PATH . 'includes/admin/admin-menu.php';
 		require_once PATCHWORK_PATH . 'includes/patchwork-utilities.php';
+		require_once PATCHWORK_PATH . 'includes/patch-api.php';
 		// require_once PATCHWORK_PATH . 'includes/patch-api.php';
 		// require_once PATCHWORK_PATH . 'includes/asset-api.php';
 	}

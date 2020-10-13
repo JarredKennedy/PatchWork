@@ -21,7 +21,7 @@ A patch is a file which contains information about how one or more files are tra
 - Date Created
 
 ### Patch Format Version
-One byte char identifying the version of the PatchWork patch format used when the patch was created. Used by the patch parser to retrieve data from the patch file.
+One byte char identifying the version of the PatchWork patch format used when the patch was created. Used by the patch reader to retrieve data from the patch file.
 
 ### Target Asset Identifier
 Variable length string which identifies a release of an asset. It is composed of the asset type, slug and version. Example: `plugin:patchwork:1.0.0`  

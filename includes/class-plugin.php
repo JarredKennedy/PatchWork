@@ -8,6 +8,20 @@ if ( ! defined( 'ABSPATH' )  ) {
 
 class Plugin implements Asset {
 
+	protected $name;
+
+	protected $version;
+
+	protected $id;
+
+	protected $type;
+
+	protected $slug;
+
+	public function __construct( $name, $version, $id, $type, $slug ) {
+		
+	}
+
 	public function get_name() {
 
 	}

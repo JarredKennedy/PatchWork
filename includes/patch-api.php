@@ -4,26 +4,100 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Returns an array with the list of patch files
- * 
- * @since 0.1.0
- * 
- * @return array
- */
-function patchwork_list_patch_files() {
+function patchwork_apply_patch( PatchWork\Patch $patch, PatchWork\Asset_Source $asset_source ) {
+	if ( ! $patch->get_diffs() ) {
+		throw new \RuntimeException( 'no diffs' );
+		return false; // handle this better.
+	}
 
-}
+	foreach ( $patch->get_diffs() as $diff ) {
+		$ops = $diff->get_ops();
 
-function patchwork_get_patch( $patch_file ) {
-	$patch = new PatchWork\Patch(  );
-}
+		if ( empty( $ops ) ) {
+			continue;
+		}
 
-/**
- * 
- */
-function patchwork_create_patch( $asset, $extracted_changes ) {
+		usort( $ops, function( $diff_a, $diff_b ) {
+			return $diff_a->original_line_start - $diff_b->original_line_start;
+		} );
 
+		$file = $asset_source->get_file( $diff->file_path );
+
+		if ( ! is_resource( $file ) ) {
+			return false; // handle this better.
+		}
+
+		$memory = @fopen( 'php://temp', 'r+' );
+
+		$next_op = current( $ops );
+
+		$original_line_number = 1;
+		$patched_line_number = 1;
+		
+		$line = fgets( $file );
+		// Check that there is a line to be written, or there is an op that effects the current line in the patched file.
+		while ( $line || ( $next_op && $next_op->patched_line_start == $patched_line_number ) ) {
+
+			if (
+				$next_op
+				&& $patched_line_number == $next_op->patched_line_start
+				&&  $next_op->op === PatchWork\Types\Diff_OP::OP_ADD
+			) {
+				if ( ! $line ) {
+					fwrite( $memory, "\n" );
+				}
+
+				fwrite( $memory, $next_op->patched . "\n" );
+
+				$patched_line_number += $next_op->patched_lines_effected;
+
+				$next_op = next( $ops );
+			} elseif (
+				$next_op
+				&& $original_line_number == $next_op->original_line_start
+				&& $next_op->op === PatchWork\Types\Diff_OP::OP_DELETE
+			) {
+				$original_line_number += $next_op->original_lines_effected;
+
+				for ( $i = 0; $i < $next_op->original_lines_effected; $i++ ) {
+					$line = fgets( $file );
+				}
+
+				$next_op = next( $ops );
+			} elseif (
+				$next_op
+				&& $original_line_number == $next_op->original_line_start
+				&& $next_op->op === PatchWork\Types\Diff_OP::OP_CHANGE
+			) {
+				fwrite( $memory, $next_op->patched . "\n" );
+
+				$original_line_number += $next_op->original_lines_effected;
+				$patched_line_number += $next_op->patched_lines_effected;
+
+				for ( $i = 0; $i < $next_op->original_lines_effected; $i++ ) {
+					$line = fgets( $file );
+				}
+
+				$next_op = next( $ops );
+			} else {
+				fwrite( $memory, $line );
+				$original_line_number++;
+				$patched_line_number++;
+
+				$line = fgets( $file );
+			}
+
+		}
+
+		ftruncate( $file, 0 );
+		rewind( $file );
+		rewind( $memory );
+
+		stream_copy_to_stream( $memory, $file );
+
+		fclose( $memory );
+		fclose( $file );
+	}
 }
 
 /**

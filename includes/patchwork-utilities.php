@@ -4,15 +4,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-function _patchwork_get_vendor_public_key() {
+function patchwork_get_vendor_public_key() {
 	return file_get_contents( PATCHWORK_PATH . 'patchwork.vendors.pub' );
 }
 
-function &_patchwork_get_verification() {
+function patchwork_get_verification() {
 	static $verification;
 
 	if ( ! is_object( $verification ) ) {
-		$verification = new \PatchWork\Verification( _patchwork_get_vendor_public_key() );
+		$verification = new \PatchWork\Verification( patchwork_get_vendor_public_key() );
 	}
 
 	return $verification;
@@ -20,7 +20,7 @@ function &_patchwork_get_verification() {
 
 /**
  * Reads the patch format version from the patch file of the handle provided.
- * The purpose of using this function is to determine which patch parser class
+ * The purpose of using this function is to determine which patch reader class
  * should be used to read the patch file. Returns the integer representing the
  * patch file format version.
  * 
@@ -32,7 +32,7 @@ function &_patchwork_get_verification() {
  * 
  * @return int|false
  */
-function _patchwork_get_patch_file_format_version( $patch_file_handle ) {
+function patchwork_get_patch_file_format_version( $patch_file_handle ) {
 	$cursor = ftell( $patch_file_handle );
 	rewind( $patch_file_handle );
 
@@ -59,25 +59,38 @@ function _patchwork_get_patch_file_format_version( $patch_file_handle ) {
 }
 
 /**
- * Return an instance of PatchWork\Patch_Parser capable of parsing patch files of the version specified.
+ * Return an instance of PatchWork\Patch_Reader capable of reading patch files of the version specified.
  * 
  * @since 1.0.0
  * 
- * @param int $patch_file_version Specifies the patch file version the returned parser must be able to read.
+ * @param int $patch_file_version Specifies the patch file version the returned reader must be able to read.
  * 
  * @return 
  */
-function _patchwork_get_patch_parser( $patch_file_version ) {
-	$parser = new \PatchWork\Patch_Parser_V1();
+function patchwork_get_patch_reader( $patch_file_version ) {
+	$reader = new \PatchWork\Patch_Reader_V1();
 
 	/**
-	 * Filters the parser for the patch file version.
+	 * Filters the reader for the patch file version.
 	 * 
-	 * @since 1.0.0
+	 * @since 0.1.0
 	 * 
-	 * @param \PatchWork\Patch_Parser $parsrer The parser object capable of reading the 
+	 * @param \PatchWork\Patch_Reader $parsrer The patch reader instance.
 	 */
-	return apply_filters( 'patchwork_patch_parser', $parser, $patch_file_version );
+	return apply_filters( 'patchwork_patch_reader', $reader, $patch_file_version );
+}
+
+function patchwork_get_patch_writer( $patch_file_version ) {
+	$writer = new PatchWork\Patch_Writer_V1();
+
+	/**
+	 * Filters the writter for the patch file version.
+	 * 
+	 * @since 0.1.0
+	 * 
+	 * @param PatchWork\Patch_Writer $writer The patch writer
+	 */
+	return apply_filters( 'patchwork_patch_writer', $writer, $patch_file_version );
 }
 
 /**
@@ -222,7 +235,7 @@ function patchwork_diff_file_trees( PatchWork\Types\File_Tree $tree_a = null, Pa
 			$node_b = $node_b->sibling;
 		} elseif ( ! $node_b ) {
 			// tree_a has node_a and tree_b doesn't.
-			// Soemthing has been removed.
+			// Something has been removed.
 			$node = new PatchWork\Types\File_Tree_Diff();
 			$node->name = $node_a->name;
 			$node->checksum = $node_a->checksum;
@@ -247,8 +260,8 @@ function patchwork_diff_file_trees( PatchWork\Types\File_Tree $tree_a = null, Pa
 				$node->checksum = $node_a->checksum;
 				$node->status = PatchWork\Types\File_Tree_Diff::CHANGE_MODIFIED;
 
-				// Any two nodes with differing checksums could not be directories
-				// so there's no need to check for children.
+				// Any two nodes with the same name and different checksums could
+				// not be directories so there's no need to check for children.
 			} elseif ( $node_a->first_child ) {
 				$child = patchwork_diff_file_trees( $node_a->first_child, $node_b->first_child );
 
