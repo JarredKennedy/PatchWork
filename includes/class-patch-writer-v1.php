@@ -118,11 +118,11 @@ class Patch_Writer_V1 implements Patch_Writer {
 			// TODO: use $diff->eof_line_ending to determine whether to append a final line ending.
 
 			if ( $op->original ) {
-				$original_lines = implode( "\n", $op->original );
+				$original_lines = implode( '', $op->original );
 			}
 
 			if ( $op->patched ) {
-				$patched_lines = implode( "\n", $op->patched );
+				$patched_lines = implode( '', $op->patched );
 			}
 
 			fwrite( $file_handle, pack( 'V', strlen( $original_lines ) ) );

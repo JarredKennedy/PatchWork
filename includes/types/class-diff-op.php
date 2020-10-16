@@ -8,19 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class Diff_OP {
 
-	const OP_COPY = 0;
+	public $original = array();
 
-	const OP_ADD = 1;
-
-	const OP_DELETE = 2;
-
-	const OP_CHANGE = 3;
-
-	public $op;
-
-	public $original;
-
-	public $patched;
+	public $patched = array();
 
 	public $original_line_start;
 

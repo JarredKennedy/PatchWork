@@ -155,22 +155,14 @@ class Patch_Reader_V1 implements Patch_Reader {
 				$op->patched_line_start = unpack( 'v', fread( $file_handle, 2 ) )[1];
 				$op->patched_lines_effected = unpack( 'v', fread( $file_handle, 2 ) )[1];
 
-				if ( $op->original_lines_effected > 0 && $op->patched_lines_effected > 0 ) {
-					$op->op = Diff_OP::OP_CHANGE;
-				} elseif ( $op->original_lines_effected > 0 ) {
-					$op->op = Diff_OP::OP_DELETE;
-				} elseif ( $op->patched_lines_effected > 0 ) {
-					$op->op = Diff_OP::OP_ADD;
-				}
-
 				$original_lines_length = unpack( 'V', fread( $file_handle, 4 ) )[1];
 				if ( $original_lines_length ) {
-					$op->original = fread( $file_handle, $original_lines_length );
+					$op->original = $this->split_lines( fread( $file_handle, $original_lines_length ) );
 				}
 
 				$patched_lines_length = unpack( 'V', fread( $file_handle, 4 ) )[1];
 				if ( $patched_lines_length ) {
-					$op->patched = fread( $file_handle, $patched_lines_length );
+					$op->patched = $this->split_lines( fread( $file_handle, $patched_lines_length ) );
 				}
 
 				$diff->add_op( $op );
@@ -181,6 +173,10 @@ class Patch_Reader_V1 implements Patch_Reader {
 		}
 
 		return $blocks;
+	}
+
+	protected function split_lines( $input ) {
+		return preg_split( '/(.*\R)/', $input, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 	}
 
 }
