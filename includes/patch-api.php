@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-function patchwork_apply_patch( PatchWork\Patch $patch, PatchWork\Asset_Source $asset_source ) {
+function patchwork_apply_patch( PatchWork\Patch $patch, PatchWork\Writeable_Asset_Source $asset_source ) {
 	if ( ! $patch->get_diffs() ) {
 		throw new \RuntimeException( 'no diffs' );
 		return false; // TODO: handle this better.
@@ -22,10 +22,21 @@ function patchwork_apply_patch( PatchWork\Patch $patch, PatchWork\Asset_Source $
 			return $diff_a->original_line_start - $diff_b->original_line_start;
 		} );
 
-		$file = $asset_source->get_file( $diff->file_path );
+		$file_exists = $asset_source->file_exists( $diff->file_path );
+
+		if ( ! $file_exists && $diff->get_lines_added() > 0 ) {
+			// This file has been added.
+			$file = $asset_source->get_file( $diff->file_path, true );
+		} elseif ( $file_exists && $diff->get_lines_added() < 1 && $diff->get_lines_deleted() > 0 ) {
+			// This file has been deleted.
+			$asset_source->delete_file( $diff->file_path );
+			continue;
+		} else {
+			$file = $asset_source->get_file( $diff->file_path, false );
+		}
 
 		if ( ! is_resource( $file ) ) {
-			return false; // TODO: handle this better.
+			throw new \RuntimeException( 'File couldn\'t be opened' ); // TODO: handle this better.
 		}
 
 		$memory = @fopen( 'php://temp', 'r+' );
@@ -87,7 +98,7 @@ function patchwork_apply_patch( PatchWork\Patch $patch, PatchWork\Asset_Source $
  * 
  * @return bool
  */
-function patchwork_revert_patch( PatchWork\Patch $patch, PatchWork\Asset_Source $asset_source ) {
+function patchwork_revert_patch( PatchWork\Patch $patch, PatchWork\Writeable_Asset_Source $asset_source ) {
 	// Check that this patch is actually applied to this file.
 	// patchwork_asset_is_patched( $asset, $patch );
 
@@ -107,10 +118,21 @@ function patchwork_revert_patch( PatchWork\Patch $patch, PatchWork\Asset_Source 
 			return $diff_a->original_line_start - $diff_b->original_line_start;
 		} );
 
-		$file = $asset_source->get_file( $diff->file_path );
+		$file_exists = $asset_source->file_exists( $diff->file_path );
+
+		if ( $file_exists && $diff->get_lines_added() > 0 && $diff->get_lines_deleted() < 1 ) {
+			// This file was added by the patch.
+			$asset_source->delete_file( $diff->file_path );
+			continue;
+		} elseif ( ! $file_exists && $diff->get_lines_added() < 1 && $diff->get_lines_deleted() > 0 ) {
+			// This file was deleted by the patch.
+			$file = $asset_source->get_file( $diff->file_path, true );
+		} else {
+			$file = $asset_source->get_file( $diff->file_path, false );
+		}
 
 		if ( ! is_resource( $file ) ) {
-			return false; // TODO: handle this better.
+			throw new \RuntimeException( 'File couldn\'t be opened' ); // TODO: handle this better.
 		}
 
 		$memory = @fopen( 'php://temp', 'r+' );
@@ -187,4 +209,102 @@ function patchwork_verify_patch_vendor( \PatchWork\Patch $patch ) {
 	 * @param \PatchWork\Patch $patch The patch of which the vendor is being verified.
 	 */
 	return apply_filters( 'patchwork_verify_patch_vendor', $verified, $patch );
+}
+
+/**
+ * Takes two asset sources, diff them, and return diffs.
+ * 
+ * @since 0.1.0
+ * 
+ * @param PatchWork\Asset_Source $original_source
+ * @param PatchWork\Asset_Source $patched_source
+ * 
+ * @return PatchWork\Diff[]
+ */
+function patchwork_diff_asset_sources( PatchWork\Asset_Source $original_source, PatchWork\Asset_Source $patched_source ) {
+	$original_tree	= $original_source->get_file_tree();
+	$patched_tree	= $patched_source->get_file_tree();
+
+	$changed_files	= patchwork_diff_file_trees( $original_tree, $patched_tree );
+	
+	$flat_tree = array();
+	patchwork_walk_file_tree( $changed_files, function( $node, $path, $is_file ) use ( &$flat_tree ) {
+		if ( $is_file ) {
+			$flat_tree[] = array(
+				$path . $node->name,
+				$node->status
+			);
+		}
+	} );
+
+	$differ = new PatchWork\Diff\Differ();
+
+	$diffs = array();
+	foreach ( $flat_tree as $file ) {
+		list( $file_path, $status ) = $file;
+
+		if ( $status === PatchWork\Types\File_Tree_Diff::CHANGE_ADDED ) {
+			$diff = new PatchWork\Diff();
+			$diff->file_path = $file_path;
+			
+			$op = new PatchWork\Types\Diff_OP();
+			$op->original_line_start = 1;
+			$op->original_lines_effected = 0;
+			$op->patched_line_start = 1;
+
+			$new_file = $patched_source->get_file( $file_path );
+
+			while ( ($line = fgets( $new_file )) != null ) {
+				$op->patched[] = $line;	
+			}
+
+			fclose( $new_file );
+
+			$op->patched_lines_effected = count( $op->patched );
+
+			$diff->add_op( $op );
+
+			$diffs[] = $diff;
+		} elseif ( $status === PatchWork\Types\File_Tree_Diff::CHANGE_REMOVED ) {
+			$diff = new PatchWork\Diff();
+			$diff->file_path = $file_path;
+			
+			$op = new PatchWork\Types\Diff_OP();
+			$op->original_line_start = 1;
+			$op->patched_line_start = 1;
+			$op->patched_lines_effected = 0;
+
+			$old_file = $original_source->get_file( $file_path );
+
+			while ( ($line = fgets( $old_file )) !== false ) {
+				$op->original[] = $line;	
+			}
+
+			fclose( $old_file );
+
+			$op->original_lines_effected = count( $op->original );
+
+			$diff->add_op( $op );
+
+			$diffs[] = $diff;
+		} elseif ( $status === PatchWork\Types\File_Tree_Diff::CHANGE_MODIFIED ) {
+			$original_lines = array();
+			$current_lines = array();
+
+			$original_file = $original_source->get_file( $file_path );
+			while ( ($line = fgets( $original_file )) !== false ) $original_lines[] = $line;
+			fclose( $original_file );
+
+			$current_file = $patched_source->get_file( $file_path );
+			while ( ($line = fgets( $current_file )) !== false ) $current_lines[] = $line;
+			fclose( $current_file );
+
+			$diff = $differ->diff( $original_lines, $current_lines );
+			$diff->file_path = $file_path;
+
+			$diffs[] = $diff;
+		}
+	}
+
+	return $diffs;
 }

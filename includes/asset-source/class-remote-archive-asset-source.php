@@ -5,12 +5,15 @@ namespace PatchWork\Asset_Source;
 use PatchWork\Asset_Source;
 use PatchWork\Types\Zip_CDH;
 use PatchWork\Types\File_Tree;
+use PatchWork\Zip_Reader;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 class Remote_Archive_Asset_Source implements Asset_Source {
+
+	protected $zip_reader;
 
 	protected $archive_url;
 
@@ -20,7 +23,12 @@ class Remote_Archive_Asset_Source implements Asset_Source {
 
 	protected $archive_size;
 
-	public function __construct( $archive_url, $estimated_cdh_size = 0 ) {
+	protected $downloaded;
+
+	private $archive;
+
+	public function __construct( Zip_Reader $zip_reader, $archive_url, $estimated_cdh_size = 0 ) {
+		$this->zip_reader = $zip_reader;
 		$this->archive_url = $archive_url;
 		$this->estimated_cdh_size = $estimated_cdh_size;
 	}
@@ -42,7 +50,34 @@ class Remote_Archive_Asset_Source implements Asset_Source {
 	}
 
 	public function get_file( $file_path ) {
+		if ( ! $this->downloaded ) {
+			$this->download_archive();
+		}
 
+		return $this->zip_reader->get_file( $this->downloaded, $file_path );
+	}
+
+	public function file_exists( $file_path ) {
+		$paths = explode( '/', $file_path );
+
+		$node = $this->get_file_tree();
+
+		$path = array_shift( $paths );
+		while ( $node ) {
+			if ( $node->name == $path ) {
+				if ( current( $paths ) ) {
+					$path = array_shift( $paths );
+					$node = $node->first_child;
+					continue;
+				} else {
+					return true;
+				}
+			}
+
+			$node = $node->sibling;
+		}
+
+		return false;
 	}
 
 	public function get_file_checksum( $file_path ) {
@@ -115,6 +150,26 @@ class Remote_Archive_Asset_Source implements Asset_Source {
 		}
 
 		return $cdh_list;
+	}
+
+	/**
+	 * Download the archive so files can be extracted from it.
+	 * 
+	 * @since 0.1.0
+	 */
+	protected function download_archive() {
+		$this->downloaded = download_url( $this->archive_url, 30, false );
+	}
+
+	/**
+	 * Remove any files downloaded by this source.
+	 * 
+	 * @since 0.1.0
+	 */
+	public function __destruct() {
+		if ( $this->downloaded ) {
+			@unlink( $this->downloaded );
+		}
 	}
 
 }

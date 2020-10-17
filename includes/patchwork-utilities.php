@@ -467,3 +467,29 @@ function patchwork_file_trees_equal( PatchWork\Types\File_Tree $tree_a = null, P
 
 	return true;
 }
+
+/**
+ * Walk a file tree and call $callback for every node.
+ * 
+ * @since 0.1.0
+ * 
+ * @param PatchWork\Types\File_Tree $tree
+ * @param callable $callback
+ */
+function patchwork_walk_file_tree( PatchWork\Types\File_Tree $tree, $callback, $path = '' ) {
+	if ( ! is_callable( $callback ) ) {
+		// TODO: throw or something
+		return;
+	}
+
+	$node = $tree;
+	while ( $node ) {
+		call_user_func( $callback, $node, $path, ( $node->checksum > 0 ) );
+
+		if ( $node->first_child ) {
+			patchwork_walk_file_tree( $node->first_child, $callback, $path . trailingslashit( $node->name ) );
+		}
+
+		$node = $node->sibling;
+	}
+}

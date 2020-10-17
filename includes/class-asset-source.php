@@ -19,6 +19,8 @@ interface Asset_Source {
 
 	public function get_file( $file_path );
 
+	public function file_exists( $file_path );
+
 	public function get_file_checksum( $file_path );
 
 }

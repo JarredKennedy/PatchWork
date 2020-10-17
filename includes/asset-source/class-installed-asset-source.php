@@ -2,14 +2,14 @@
 
 namespace PatchWork\Asset_Source;
 
-use PatchWork\Asset_Source;
+use PatchWork\Writeable_Asset_Source;
 use PatchWork\Types\File_Tree;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class Installed_Asset_Source implements Asset_Source {
+class Installed_Asset_Source implements Writeable_Asset_Source {
 
 	/** @var string The absolute path (with trailing slash) to the directory root for the asset source. */
 	protected $directory;
@@ -18,7 +18,7 @@ class Installed_Asset_Source implements Asset_Source {
 	protected $file_tree;
 
 	public function __construct( $directory ) {
-		$this->directory = $directory;
+		$this->directory = trailingslashit( $directory );
 	}
 
 	/**
@@ -86,14 +86,42 @@ class Installed_Asset_Source implements Asset_Source {
 		return $tree;
 	}
 
-	public function get_file( $file_path ) {
-		$file = @fopen( $this->directory . $file_path, 'r+' );
+	public function get_file( $file_path, $create = false ) {
+		$file_path = $this->normalize_file_path( $file_path );
+		$mode = $create ? 'w+b' : 'r+b';
+
+		$file = @fopen( $this->directory . $file_path, $mode );
 
 		return $file;
 	}
 
+	public function file_exists( $file_path ) {
+		$file_path = $this->normalize_file_path( $file_path );
+
+		return file_exists( $this->directory . $file_path );
+	}
+
 	public function get_file_checksum( $file_path ) {
 		return null; // stub
+	}
+
+	public function mkdir( $path, $recursive = false ) {
+		return null; // stub
+	}
+
+	public function delete_file( $file_path ) {
+		$file_path = $this->normalize_file_path( $file_path );
+		@unlink( $this->directory . $file_path );
+	}
+
+	protected function normalize_file_path( $file_path ) {
+		$basename = trailingslashit( basename( $this->directory ) );
+
+		if ( strpos( $file_path, $basename ) === 0 ) {
+			$file_path = substr( $file_path, strlen( $basename ) );
+		}
+
+		return $file_path;
 	}
 
 }
