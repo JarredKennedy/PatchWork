@@ -36,6 +36,8 @@ class Patch_Reader_V1 implements Patch_Reader {
 			throw new \RuntimeException( 'Patch file not found' );
 		}
 
+		mbstring_binary_safe_encoding();
+
 		$file = @fopen( $patch_file_path, 'rb' );
 
 		$header = $this->read_header( $file );
@@ -47,6 +49,8 @@ class Patch_Reader_V1 implements Patch_Reader {
 		}
 
 		fclose( $file );
+
+		reset_mbstring_encoding();
 
 		$patch = new Patch( $header, $diff_blocks );
 
@@ -167,6 +171,9 @@ class Patch_Reader_V1 implements Patch_Reader {
 
 				$diff->add_op( $op );
 			}
+
+			// Go back the 6 bytes just read to check for signature.
+			fseek( $file_handle, -6, SEEK_CUR );
 
 			$blocks[] = $diff;
 

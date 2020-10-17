@@ -35,6 +35,8 @@ class Patch_Writer_V1 implements Patch_Writer {
 			throw new \RuntimeException( 'Tried to overwrite existing patch file' );
 		}
 
+		mbstring_binary_safe_encoding();
+
 		$header = $patch->get_header();
 
 		$this->finalize_header( $header );
@@ -54,6 +56,8 @@ class Patch_Writer_V1 implements Patch_Writer {
 		}
 
 		$this->finalize_patch_file( $file, $patch_file_path, $header, $offsets );
+
+		reset_mbstring_encoding();
 
 		fclose( $file );
 	}
