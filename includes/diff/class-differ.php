@@ -108,6 +108,8 @@ class Differ implements Differ_Spec {
     /**
      * Produces a PatchWork\Diff object. This representation works better for completely
      * replaced files that may be added to a patch file.
+     * 
+     * This method is not part of the sebastian/diff package, submit issues to the PatchWork repo.
      */
     private function condense_diff( $diff ) {
         $condensed = new Diff();
@@ -139,20 +141,24 @@ class Differ implements Differ_Spec {
             // block for a smaller patch file and faster file patching.
             $next = current( $diff );
             while ( $next && (
-                ( $next[1] === self::ADDED && ($next[3] == $line_number_p || $next[3] == $line_number_p + $mod_o) )
-                || ( $next[1] === self::REMOVED && ($next[2] == $line_number_o || $next[2] == $line_number_o + $mod_p) )
+                ( $next[1] === self::ADDED && ($next[3] == $line_number_p + $mod_p - 1 || $next[3] == $line_number_p + $mod_p) )
+                || ( $next[1] === self::REMOVED && ($next[2] == $line_number_o + $mod_o - 1 || $next[2] == $line_number_o + $mod_o) )
             ) ) {
 
                 if ( $next[1] === self::ADDED ) {
                     $op->patched[] = $next[0];
                     $op->patched_lines_effected++;
-                    $line_number_p++;
-                    $mod_o = 0;
+                    
+                    // If it was equal to the original line, don't increment line modifier.
+                    if ( $next[3] != $line_number_p + $mod_p - 1 ) {
+                        $mod_p++;
+                    }
                 } else {
                     $op->original[] = $next[0];
                     $op->original_lines_effected++;
-                    $line_number_o++;
-                    $mod_p = 0;
+                    if ( $next[2] != $line_number_o + $mod_o - 1 ) {
+                        $mod_o++;
+                    }
                 }
 
                 array_shift( $diff );
