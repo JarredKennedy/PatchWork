@@ -15,12 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * This asset is the target of patches which are not modifications
  * to themes, plugins or any other asset.
  */
-class Anon_Plugin extends Asset {
+class Anon_Plugin extends Plugin {
 
-	protected $patch_id;
-
-	public function __construct( $patch_id ) {
-		
+	public function get_type() {
+		return 'anon';
 	}
 
 }

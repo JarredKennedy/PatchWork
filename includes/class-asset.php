@@ -63,4 +63,19 @@ interface Asset {
 	 */
 	public function get_slug();
 
+	/**
+	 * Returns the activation status of the asset.
+	 */
+	public function get_status();
+
+	/**
+	 * Returns the path of the asset. For a single-file asset, this returns the path to the asset
+	 * otherwise it returns the path to the root directory of the asset.
+	 * 
+	 * @since 0.1.0
+	 * 
+	 * @return string
+	 */
+	public function get_path();
+
 }

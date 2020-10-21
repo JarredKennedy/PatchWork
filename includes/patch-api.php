@@ -216,18 +216,15 @@ function patchwork_verify_patch_vendor( \PatchWork\Patch $patch ) {
  * 
  * @since 0.1.0
  * 
+ * @param PatchWork\Types\File_Tree_Diff $file_tree_diff
  * @param PatchWork\Asset_Source $original_source
  * @param PatchWork\Asset_Source $patched_source
  * 
  * @return PatchWork\Diff[]
  */
-function patchwork_diff_asset_sources( PatchWork\Asset_Source $original_source, PatchWork\Asset_Source $patched_source ) {
-	$original_tree	= $original_source->get_file_tree();
-	$patched_tree	= $patched_source->get_file_tree();
-
-	$changed_files	= patchwork_diff_file_trees( $original_tree, $patched_tree );
-	
+function patchwork_diff_files( PatchWork\Types\File_Tree_Diff $changed_files, PatchWork\Asset_Source $original_source, PatchWork\Asset_Source $patched_source ) {
 	$flat_tree = array();
+
 	patchwork_walk_file_tree( $changed_files, function( $node, $path, $is_file ) use ( &$flat_tree ) {
 		if ( $is_file ) {
 			$flat_tree[] = array(

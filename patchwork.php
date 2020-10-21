@@ -89,17 +89,16 @@ final class PatchWork {
 
 		require_once PATCHWORK_PATH . 'autoload.php';
 
-		// if ( function_exists( 'register_rest_route' ) ) {
-		// 	require_once PATCHWORK_PATH . 'includes/rest-api-controller.php';
-		// } else {
-		// 	require_once PATCHWORK_PATH . 'includes/admin-ajax-api-controller.php';
-		// }
+		if ( function_exists( 'register_rest_route' ) ) {
+			require_once PATCHWORK_PATH . 'includes/rest-api.php';
+		} else {
+			require_once PATCHWORK_PATH . 'includes/ajax-api.php';
+		}
 
 		require_once PATCHWORK_PATH . 'includes/admin/admin-menu.php';
 		require_once PATCHWORK_PATH . 'includes/patchwork-utilities.php';
 		require_once PATCHWORK_PATH . 'includes/patch-api.php';
-		// require_once PATCHWORK_PATH . 'includes/patch-api.php';
-		// require_once PATCHWORK_PATH . 'includes/asset-api.php';
+		require_once PATCHWORK_PATH . 'includes/asset-api.php';
 	}
 
 	/**

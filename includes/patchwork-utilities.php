@@ -94,19 +94,6 @@ function patchwork_get_patch_writer( $patch_file_version ) {
 }
 
 /**
- * Returns the types of assets processed by PatchWork.
- * 
- * @since 0.1.0
- * 
- * @return array
- */
-function _patchwork_get_asset_types() {
-	$asset_types = array( 'plugin', 'theme' );
-
-	return apply_filters( 'patchwork_asset_types', $asset_types );
-}
-
-/**
  * Returns the estimated Central Directory Header (CDH) size in bytes.
  * 
  * @see docs/glossary.md	For a definition of CDH.

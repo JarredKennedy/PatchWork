@@ -4,6 +4,83 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+function patchwork_search_assets( $args ) {
+	$defaults = array(
+		'types'		=> array( 'anon', 'plugin', 'theme' ),
+		'order_by'	=> 'name',
+		'order'		=> 'ASC',
+		'status'	=> null
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	$assets = array();
+
+	if ( in_array( 'plugin', $args['types'] ) ) {
+		foreach ( get_plugins() as $slug => $header ) {
+			$slug = plugin_basename( $slug );
+
+			$id = sprintf( 'plugin:%s:%s', $slug, $header['Version'] );
+			$status = is_plugin_active( $slug ) ? 'active' : 'inactive';
+			$path = dirname( ABSPATH . 'wp-content/plugins/' . $slug );
+
+			$assets[] = new PatchWork\Plugin( $header['Name'], $header['Version'], $id, $slug, $status, $path );
+		}
+	}
+
+	if ( in_array( 'theme', $args['types'] ) ) {
+		foreach ( get_themes() as $theme ) {
+			$id = sprintf( 'theme:%s:%s', $slug, $theme->get( 'Version' ) );
+			$status = ( get_stylesheet() == $theme->get_stylesheet() ) ? 'active' : 'inactive';
+
+			$asset = new PatchWork\Theme( $theme->get( 'Name' ), $theme->get( 'Version' ), $id, $slug, $status, $theme->get_stylesheet_directory() );
+		}
+	}
+
+	return $assets;
+}
+
+function patchwork_get_asset( $target_asset_identifier ) {
+	$components = explode( ':', $target_asset_identifier );
+
+	if ( count( $components ) < 2 ) {
+		return new \WP_Error( 'invalid_tai', 'Target asset identifier is invalid' );
+	}
+
+	$type = array_shift( $components );
+	$slug = array_shift( $components );
+
+	if ( ! in_array( $type, array( 'anon', 'plugin', 'theme' ) ) ) {
+		return new \WP_Error( 'invalid_tai', 'Target asset identifier is invalid' );
+	}
+
+	if ( $type === 'anon' || $type === 'plugin' ) {
+		$slug = plugin_basename( $slug );
+		$file = ABSPATH . 'wp-content/plugins/' . $slug;
+
+		$plugin = get_plugin_data( $file );
+
+		// check for errors.
+
+		$id = sprintf( 'plugin:%s:%s', $slug, $plugin['Version'] );
+		$status = is_plugin_active( $slug ) ? 'active' : 'inactive';
+		$path = dirname( $file );
+
+		$asset = new PatchWork\Plugin( $plugin['Name'], $plugin['Version'], $id, $slug, $status, $path );
+	} else {
+		$theme = wp_get_theme( $slug );
+
+		// check for errors.
+
+		$id = sprintf( 'theme:%s:%s', $slug, $theme->get( 'Version' ) );
+		$status = ( get_stylesheet() == $theme->get_stylesheet() ) ? 'active' : 'inactive';
+
+		$asset = new PatchWork\Theme( $theme->get( 'Name' ), $theme->get( 'Version' ), $id, $slug, $status, $theme->get_stylesheet_directory() );
+	}
+
+	return $asset;
+}
+
 /**
  * Returns the absolute path to an asset
  * 
