@@ -129,3 +129,38 @@ function patchwork_get_asset_patches( $status = 'all' ) {
 
 	
 }
+
+function patchwork_locate_asset_original_source( PatchWork\Asset $asset ) {
+	$location = array();
+	$source_cache = get_option( 'patchwork_original_asset_sources', array() );
+
+	$asset_id = $asset->get_id();
+	if ( isset( $source_cache[$asset_id] ) ) {
+		$location = $source_cache[$asset_id];
+	}
+
+	if ( ! isset( $location['host'] ) ) {
+		// Check if this is a wordpress.org plugin.
+		$repo = new PatchWork\WP_Org_Repo();
+		$info = $repo->get_asset_info( $asset );
+
+		$version = $asset->get_version();
+
+		if ( version_compare( $info['version'], $version, '=' ) ) {
+			$location['host'] = 'remote';
+			$location['target'] = $info['download_link'];
+		} elseif ( isset( $info['versions'] ) && is_array( $info['versions'] ) && isset( $info['versions'][$version] ) ) {
+			$location['host'] = 'remote';
+			$location['target'] = $info['versions'][$version];
+		} else {
+			// Version was not found.
+			return false;
+		}
+	}
+
+	$source_cache[$asset_id] = $location;
+
+	update_option( 'patchwork_original_asset_sources', $source_cache );
+
+	return $location;
+}

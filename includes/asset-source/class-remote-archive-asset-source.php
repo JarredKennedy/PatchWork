@@ -158,6 +158,10 @@ class Remote_Archive_Asset_Source implements Asset_Source {
 	 * @since 0.1.0
 	 */
 	protected function download_archive() {
+		if ( ! function_exists( 'download_url' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
 		$this->downloaded = download_url( $this->archive_url, 30, false );
 	}
 
