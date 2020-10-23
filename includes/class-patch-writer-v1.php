@@ -79,6 +79,8 @@ class Patch_Writer_V1 implements Patch_Writer {
 		fwrite( $file_handle, $header->author_name );
 		fwrite( $file_handle, pack( 'C', $header->author_url_length ) );
 		fwrite( $file_handle, $header->author_url );
+		fwrite( $file_handle, pack( 'C', $header->name_length ) );
+		fwrite( $file_handle, $header->name );
 		fwrite( $file_handle, pack( 'C', $header->description_length ) );
 		fwrite( $file_handle, $header->description );
 		
@@ -147,6 +149,7 @@ class Patch_Writer_V1 implements Patch_Writer {
 		$header->vendor_id_length = strlen( $header->vendor_id );
 		$header->author_name_length = strlen( $header->author_name );
 		$header->author_url_length = strlen( $header->author_url );
+		$header->name_length = strlen( $header->name );
 		$header->description_length = strlen( $header->description );
 
 		if ( ! is_int( $header->created_timestamp ) ) {
@@ -170,14 +173,15 @@ class Patch_Writer_V1 implements Patch_Writer {
 	}
 
 	protected function calculate_header_size( Patch_Header $header ) {
-		// 206 bytes in fixed-length fields.
-		$fixed_header_size = 206;
+		// 207 bytes in fixed-length fields.
+		$fixed_header_size = 207;
 
 		$length = $fixed_header_size
 			+ $header->target_asset_identifier_length
 			+ $header->vendor_id_length
 			+ $header->author_name_length
 			+ $header->author_url_length
+			+ $header->name_length
 			+ $header->description_length;
 
 		return $length;

@@ -22,12 +22,14 @@ The header section is the first section of the patch file.
 | H.11 | Author name | string | The author of the patch | _variable_ | _value of H.10_ | PatchWork |
 | H.12 | Author url length | char | The length of the author url (H.13) | _variable_ | 1 | 21 |
 | H.13 | Author url | string | The url of the patch author | _variable_ | _value of H.12_ | https://patchwork.dev |
-| H.14 | Patch description length | char | The length of the patch description field (H.15) | _variable_ | 1 | 12 |
-| H.15 | Patch description | string | A description of what the patch does | _variable_ | _value of H.14_ | Does a thing |
-| H.16 | Total lines added | long | The number of lines added or modified in this patch | _variable_ | 4 |  100 |
-| H.17 | Total lines removed | long | The number of lines removed or modified in this patch | _variable_ | 4 |  40 |
-| H.18 | Patch creation timestamp | long | 32bit unix timestamp representing when the patch was created | _variable_ | 4 | 1546300800 |
-| H.19 | Patch checksum | char | SHA-1 hash of the patch file. Calculated with NULL bytes for this field | _variable_ | 20 | 2E 99 75 85 48 97 2A 8E 88 22 AD 47 FA 10 17 FF 72 F0 6F 3F |
+| H.14 | Patch name length | char | The length of the patch name field (H.15) | _variable_ | 1 | 13 |
+| H.15 | Patch name | string | A short name for the patch. | _variable_ | _value of H.14_ | Example Patch |
+| H.16 | Patch description length | char | The length of the patch description field (H.17) | _variable_ | 1 | 12 |
+| H.17 | Patch description | string | A description of what the patch does | _variable_ | _value of H.16_ | Does a thing |
+| H.18 | Total lines added | long | The number of lines added or modified in this patch | _variable_ | 4 |  100 |
+| H.19 | Total lines removed | long | The number of lines removed or modified in this patch | _variable_ | 4 |  40 |
+| H.20 | Patch creation timestamp | long | 32bit unix timestamp representing when the patch was created | _variable_ | 4 | 1546300800 |
+| H.21 | Patch checksum | char | SHA-1 hash of the patch file. Calculated with NULL bytes for this field | _variable_ | 20 | 2E 99 75 85 48 97 2A 8E 88 22 AD 47 FA 10 17 FF 72 F0 6F 3F |
 
 ## Diff Blocks
 A patch file contains at least one diff block. There is one diff block per changed file. Diff blocks have a header which contains some metadata, such as the name of the file.

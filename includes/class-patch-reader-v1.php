@@ -102,6 +102,10 @@ class Patch_Reader_V1 implements Patch_Reader {
 
 		$header->author_url = fread( $file_handle, $header->author_url_length );
 
+		$header->name_length = unpack( 'C', fread( $file_handle, 1 ) )[1];
+
+		$header->name = fread( $file_handle, $header->name_length );
+
 		$header->description_length = unpack( 'C', fread( $file_handle, 1 ) )[1];
 
 		$header->description = fread( $file_handle, $header->description_length );

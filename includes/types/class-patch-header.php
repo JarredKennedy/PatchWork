@@ -34,6 +34,10 @@ class Patch_Header {
 
 	public $author_url;
 
+	public $name_length;
+
+	public $name;
+
 	public $description_length;
 
 	public $description;
