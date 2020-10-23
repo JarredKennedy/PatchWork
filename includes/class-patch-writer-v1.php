@@ -170,7 +170,7 @@ class Patch_Writer_V1 implements Patch_Writer {
 	}
 
 	protected function calculate_header_size( Patch_Header $header ) {
-		// 218 bytes in fixed-length fields.
+		// 206 bytes in fixed-length fields.
 		$fixed_header_size = 206;
 
 		$length = $fixed_header_size

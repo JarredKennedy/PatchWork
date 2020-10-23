@@ -14,6 +14,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 interface Patch_Writer {
 
+	/**
+	 * Writes a patch to a patch file.
+	 * 
+	 * @param PatchWork\Patch $patch
+	 * @param string $patch_file_path
+	 * @param bool $overwrite_existing
+	 */
 	public function write( Patch $patch, $patch_file_path, $overwrite_existing = false );
 
 }
