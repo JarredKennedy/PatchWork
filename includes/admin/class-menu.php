@@ -43,10 +43,6 @@ class Menu {
 		$screen = get_current_screen();
 
 		if ( $screen && $screen->id == self::$menu_hook ) {
-			wp_localize_script( 'patchwork-admin', 'patchwork', array(
-				'pw_url'	=> PATCHWORK_URL
-			) );
-
 			wp_enqueue_script( 'patchwork-admin' );
 			wp_enqueue_style( 'patchwork-admin' );
 		}

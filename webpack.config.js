@@ -4,7 +4,8 @@ const WPDependencyExtraction = require('@wordpress/dependency-extraction-webpack
 
 module.exports = {
 	entry: {
-		app: './app/src/app.js'
+		app: './app/src/app.js',
+		api: './app/src/api-client/index.js'
 	},
 
 	output: {

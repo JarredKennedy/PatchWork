@@ -1,9 +1,12 @@
 import { createHooks } from '@wordpress/hooks'
 
 import scanning from './scanning'
+import assets from './assets'
 
-export default {
+const hook = createHooks();
+
+export {
 	scanning,
-
-	hook: createHooks()
-};
+	assets,
+	hook
+}

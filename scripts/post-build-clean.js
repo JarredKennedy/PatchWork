@@ -5,3 +5,4 @@ var root = path.resolve(__dirname, '../');
 var appDir = path.resolve(root, 'app');
 
 fs.unlinkSync(`${appDir}/dist/app.asset.php`);
+fs.unlinkSync(`${appDir}/dist/api.asset.php`);
