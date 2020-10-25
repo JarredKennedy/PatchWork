@@ -14,6 +14,8 @@ function patchwork_search_assets( $args ) {
 
 	$args = wp_parse_args( $args, $defaults );
 
+	$args['order'] = strtoupper( $args['order'] );
+
 	$assets = array();
 
 	if ( in_array( 'plugin', $args['types'] ) ) {
@@ -24,18 +26,25 @@ function patchwork_search_assets( $args ) {
 			$status = is_plugin_active( $slug ) ? 'active' : 'inactive';
 			$path = dirname( ABSPATH . 'wp-content/plugins/' . $slug );
 
-			$assets[] = new PatchWork\Plugin( $header['Name'], $header['Version'], $id, $slug, $status, $path );
+			$assets[] = new PatchWork\Plugin( $header['Name'], $header['Version'], $id, $slug, $status, $path, $header['Author'] );
 		}
 	}
 
 	if ( in_array( 'theme', $args['types'] ) ) {
 		foreach ( get_themes() as $theme ) {
+			$slug = $theme->get_stylesheet();
 			$id = sprintf( 'theme:%s:%s', $slug, $theme->get( 'Version' ) );
 			$status = ( get_stylesheet() == $theme->get_stylesheet() ) ? 'active' : 'inactive';
 
-			$asset = new PatchWork\Theme( $theme->get( 'Name' ), $theme->get( 'Version' ), $id, $slug, $status, $theme->get_stylesheet_directory() );
+			$assets[] = new PatchWork\Theme( $theme->get( 'Name' ), $theme->get( 'Version' ), $id, $slug, $status, $theme->get_stylesheet_directory(), $theme->get( 'Author' ) );
 		}
 	}
+
+	$order_by = $args['order_by'];
+	$order = ( $args['order'] === 'ASC' ) ? 1 : -1;
+	usort( $assets, function( $asset_a, $asset_b ) use ( $order_by, $order ) {
+		return strcmp( $asset_a->get_name(), $asset_b->get_name() ) * $order;
+	} );
 
 	return $assets;
 }

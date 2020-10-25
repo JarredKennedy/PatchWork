@@ -305,3 +305,29 @@ function patchwork_diff_files( PatchWork\Types\File_Tree_Diff $changed_files, Pa
 
 	return $diffs;
 }
+
+function patchwork_add_patch( $patch, $patch_hash, $patch_file ) {
+	$patches = get_option( 'patchwork_patches', array() );
+
+	$patch_header = $patch->get_header();
+	$patch_name = $patch_header->name;
+
+	if ( empty( $patch_name ) ) {
+		$tai = $patch_header->target_asset_identifier;
+		$asset = patchwork_get_asset( $tai );
+
+		$patch_name = sprintf(
+			__( '%s Patch #%s', 'patchwork' ),
+			$asset->get_name(),
+			substr( $patch_hash, 0, 12 )
+		);
+	}
+
+	$patches[$patch_hash] = array(
+		'status'	=> 'inactive',
+		'file'		=> $patch_file,
+		'name'		=> $patch_name
+	);
+
+	update_option( 'patchwork_patches', $patches );
+}

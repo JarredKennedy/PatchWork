@@ -56,6 +56,10 @@ class REST_Assets_Controller extends WP_REST_Controller {
 	public function list_assets( $request ) {
 		$args = array();
 
+		if ( $request->has_param( 'order' ) ) {
+			$args['order'] = $request->get_param( 'order' );
+		}
+
 		$assets = patchwork_search_assets( $args );
 
 		$assets = array_map( function( $asset ) {
@@ -66,7 +70,8 @@ class REST_Assets_Controller extends WP_REST_Controller {
 				'slug'		=> $asset->get_slug(),
 				'version'	=> $asset->get_version(),
 				'status'	=> $asset->get_status(),
-				'path'		=> $asset->get_path()
+				'path'		=> $asset->get_path(),
+				'author'	=> $asset->get_author()
 			);
 		}, $assets );
 
@@ -148,7 +153,6 @@ class REST_Assets_Controller extends WP_REST_Controller {
 	 * manage_options is the permission required for access to any PatchWork API endpoint.
 	 */
 	public function permissions_check( $request ) {
-		return true;
 		// TODO: re-enable the permission check.
 		return current_user_can( 'manage_options' );
 	}

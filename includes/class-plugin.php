@@ -20,13 +20,16 @@ class Plugin implements Asset {
 
 	protected $path;
 
-	public function __construct( $name, $version, $id, $slug, $status, $path ) {
+	protected $author;
+
+	public function __construct( $name, $version, $id, $slug, $status, $path, $author = null ) {
 		$this->name = $name;
 		$this->version = $version;
 		$this->id = $id;
 		$this->slug = $slug;
 		$this->status = $status;
 		$this->path = $path;
+		$this->author = $author;
 	}
 
 	public function get_name() {
@@ -55,6 +58,10 @@ class Plugin implements Asset {
 
 	public function get_path() {
 		return $this->path;
+	}
+
+	public function get_author() {
+		return $this->author;
 	}
 
 }

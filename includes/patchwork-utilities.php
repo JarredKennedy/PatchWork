@@ -59,6 +59,23 @@ function patchwork_get_patch_file_format_version( $patch_file_handle ) {
 }
 
 /**
+ * Returns the directory where patch files are stored.
+ * 
+ * @since 0.1.0
+ * 
+ * @return string
+ */
+function patchwork_get_patches_directory() {
+	if ( defined( 'PATCHWORK_PATCHES_DIRECTORY' ) ) {
+		return PATCHWORK_PATCHES_DIRECTORY;
+	}
+
+	$directory = ABSPATH . 'wp-content/patches';
+
+	return $directory;
+}
+
+/**
  * Return an instance of PatchWork\Patch_Reader capable of reading patch files of the version specified.
  * 
  * @since 1.0.0

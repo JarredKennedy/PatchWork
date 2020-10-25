@@ -5,6 +5,9 @@ namespace PatchWork\Controllers\Rest;
 use \WP_REST_Controller;
 use \WP_REST_Server;
 
+use PatchWork\Patch;
+use PatchWork\Types\Patch_Header;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -36,6 +39,18 @@ class REST_Scan_Controller extends WP_REST_Controller {
 				array(
 					'methods'				=> WP_REST_Server::CREATABLE,
 					'callback'				=> array( $this, 'scan' ),
+					'permission_callback'	=> array( $this, 'permissions_check' )
+				)
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<scan_token>[a-zA-Z0-9\.-]+)/extract',
+			array(
+				array(
+					'methods'				=> WP_REST_Server::CREATABLE,
+					'callback'				=> array( $this, 'extract' ),
 					'permission_callback'	=> array( $this, 'permissions_check' )
 				)
 			)
@@ -101,8 +116,74 @@ class REST_Scan_Controller extends WP_REST_Controller {
 		return $diffs;
 	}
 
+	public function extract( $request ) {
+		$scan_token = $request->get_param( 'scan_token' );
+		$patch_name = $request->get_param( 'patch_name' );
+		$patch_description = $request->get_param( 'patch_description' );
+		$author_name = $request->get_param( 'author_name' );
+
+		$user = wp_get_current_user();
+
+		if ( ! $patch_name ) {
+			$patch_name = "";
+		}
+
+		if ( ! $patch_description ) {
+			$patch_description = "";
+		}
+
+		if ( ! $author_name ) {
+			if ( $user ) {
+				$author_name = $user->display_name;
+			} else {
+				$author_name = "";
+			}
+		}
+
+		$scan_data = get_transient( 'patchwork_scan_data_' . $scan_token );
+
+		if ( ! $scan_data ) {
+			return new \WP_Error( 'scan_extract_error', "Couldn't find scan data for scan token" );
+		}
+
+		$asset = patchwork_get_asset( $scan_data['asset_id'] );
+
+		$diffs = get_transient( 'patchwork_scan_diff_' . $scan_token );
+
+		if ( ! $diffs ) {
+			return new \WP_Error( 'scan_extract_error', "Couldn't find scan data for scan token" );
+		}
+
+		$patch_header = new Patch_Header();
+		$patch_header->format_version = PATCHWORK_USE_PATCH_VERSION;
+		$patch_header->target_asset_identifier = $asset->get_id();
+		$patch_header->author_name = $author_name;
+		$patch_header->name = $patch_name;
+		$patch_header->description = $patch_description;
+
+		$patch = new Patch( $patch_header, $diffs );
+
+		$patches_directory = trailingslashit( apply_filters( 'patchwork_patches_file_path', ABSPATH . 'wp-content/patches/' ) );
+		$patch_file_path = $patches_directory . uniqid( 'patch-' ) . '.pwp';
+
+		$patch_writer = patchwork_get_patch_writer( PATCHWORK_USE_PATCH_VERSION );
+		$patch_writer->write( $patch, $patch_file_path, true );
+
+		$hash = bin2hex( $patch_header->checksum );
+		$final_path = $patches_directory . 'patch-' . $hash . '.pwp';
+
+		rename( $patch_file_path, $final_path );
+
+		patchwork_add_patch( $patch, $hash, $final_path );
+
+		return array(
+			'patch_file'	=> $final_path,
+			'patch'			=> $patch_header
+		);
+	}
+
 	public function permissions_check( $request ) {
-		return true;
+		return current_user_can( 'manage_options' );
 	}
 
 }

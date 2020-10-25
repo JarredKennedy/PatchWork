@@ -2,7 +2,7 @@
 /**
  * @package     PatchWork
  * @author      Jarred Kennedy
- * @copyright   2018 Jarred Kennedy
+ * @copyright   2018-2020 Jarred Kennedy
  * @license     MIT
  *
  * @wordpress-plugin
@@ -87,7 +87,13 @@ final class PatchWork {
 			define( 'PATCHWORK_PATCH_DIR', WP_CONTENT_DIR . '/patchwork' );
 		}
 
+		if ( ! defined( 'PATCHWORK_USE_PATCH_VERSION' ) ) {
+			define( 'PATCHWORK_USE_PATCH_VERSION', 1 );
+		}
+
 		require_once PATCHWORK_PATH . 'autoload.php';
+
+		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 
 		if ( function_exists( 'register_rest_route' ) ) {
 			require_once PATCHWORK_PATH . 'includes/rest-api.php';
@@ -130,6 +136,15 @@ final class PatchWork {
 		}
 
 		return true;
+	}
+
+	public function activate() {
+		// Ensure the patches directory exists.
+		$directory = ABSPATH . 'wp-content/patches';
+
+		if ( ! file_exists( $directory ) || ! is_dir( $directory ) ) {
+			@mkdir( $directory, 0644, false );
+		}
 	}
 
 }
