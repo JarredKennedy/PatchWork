@@ -91,34 +91,30 @@ class ScanScreen extends Component {
 	}
 	
 	loadAssetImages() {
-		// let loaded = (event) => {
-		// 	let target = event.target || event.srcElement;
+		let toScan = this.state.assets.filter(asset => asset.type == 'plugin').map(asset => asset.niceslug);
+		
+		let loaded = null;
+		if (window.localStorage) {
+			loaded = window.localStorage.getItem('patchwork_plugin_images');
 
-		// 	this.setState({
-		// 		assetImages: {
-		// 			...this.state.assetImages,
-		// 			[target.dataset.slug]: target.src
-		// 		}
-		// 	});
-		// };
+			if (loaded) {
+				loaded = JSON.parse(loaded);
 
-		// let failed = (event) => {
-		// 	let target = event.target || event.srcElement;
-		// 	if (target.dataset.tryingsize != 256) {
-		// 		tryLoad(target.dataset.slug, 256);
-		// 	} else {
-		// 		// Add this image as a failue to local storage.
-		// 	}
-		// };
+				if (Array.isArray(loaded)) {
+					let exclude = loaded.map(requestedImage => requestedImage.slug);
+					let assetImages = loaded
+						.filter(requestedImage => requestedImage.status == 1)
+						.reduce((loaded, requestedImage) => {
+							loaded[requestedImage.slug] = requestedImage.image;
+							return loaded;
+						}, this.state.assetImages);
 
-		// let tryLoad = (slug, size) => {
-		// 	let img = new Image(size, size);
-		// 	img.dataset.slug = slug;
-		// 	img.dataset.tryingsize = size;
-		// 	img.addEventListener('load', loaded);
-		// 	img.addEventListener('error', failed);
-		// 	img.src = `https://ps.w.org/${slug}/assets/icon-${size}x${size}.png`;
-		// };
+						toScan = toScan.filter(slug => exclude.indexOf(slug) < 0);
+
+					this.setState({assetImages});
+				}
+			}
+		}
 
 		const tryLoad = (slug, size) => {
 			let prom = new Promise((resolve, reject) => {
@@ -130,7 +126,7 @@ class ScanScreen extends Component {
 					if (size == 128) {
 						tryLoad(slug, 256).then(resolve).catch(reject);
 					} else {
-						reject();
+						reject(slug);
 					}
 				});
 
@@ -140,9 +136,7 @@ class ScanScreen extends Component {
 			return prom;
 		};
 
-		let imageRequests = this.state.assets
-			.filter(asset => asset.type == 'plugin')
-			.map(asset => tryLoad(asset.niceslug, 128));
+		let imageRequests = toScan.map(slug => tryLoad(slug, 128));
 
 		Promise.allSettled(imageRequests)
 		.then(results => {
@@ -154,7 +148,31 @@ class ScanScreen extends Component {
 						images[pair[0]] = pair[1];
 						return images;
 					}, this.state.assetImages)
-			})
+			});
+
+			if (window.localStorage) {
+				if (!loaded) {
+					loaded = [];
+				}
+
+				loaded = loaded.concat(results.map(result => {
+					let status = result.status == 'fulfilled' ? 1 : 0;
+					let slug = status ? result.value[0] : result.reason;
+
+					let item = {
+						status,
+						slug
+					};
+
+					if (status) {
+						item.image = result.value[1];
+					}
+
+					return item;
+				}));
+
+				window.localStorage.setItem('patchwork_plugin_images', JSON.stringify(loaded));
+			}
 		});
 	}
 
