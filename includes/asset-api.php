@@ -5,6 +5,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function patchwork_search_assets( $args ) {
+	if ( ! function_exists( 'get_plugins' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+
 	$defaults = array(
 		'types'		=> array( 'anon', 'plugin', 'theme' ),
 		'order_by'	=> 'name',
@@ -31,7 +35,7 @@ function patchwork_search_assets( $args ) {
 	}
 
 	if ( in_array( 'theme', $args['types'] ) ) {
-		foreach ( get_themes() as $theme ) {
+		foreach ( wp_get_themes() as $theme ) {
 			$slug = $theme->get_stylesheet();
 			$id = sprintf( 'theme:%s:%s', $slug, $theme->get( 'Version' ) );
 			$status = ( get_stylesheet() == $theme->get_stylesheet() ) ? 'active' : 'inactive';
