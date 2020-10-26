@@ -71,6 +71,10 @@ function patchwork_get_asset( $target_asset_identifier ) {
 		$slug = plugin_basename( $slug );
 		$file = ABSPATH . 'wp-content/plugins/' . $slug;
 
+		if ( ! function_exists( 'get_plugin_data' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
 		$plugin = get_plugin_data( $file );
 
 		// check for errors.
