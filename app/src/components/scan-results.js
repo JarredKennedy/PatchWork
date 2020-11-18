@@ -1,6 +1,8 @@
 import React from 'react'
 import {Component} from '@wordpress/element'
 
+import './scan-results.scss'
+
 class ScanResults extends Component {
 	constructor(props) {
 		super(props);
@@ -15,6 +17,7 @@ class ScanResults extends Component {
 	render() {
 		const displayLines = (change, file) => {
 			let lines = [], originalOffset = 0, patchedOffset = 0;
+			let lineBreak = new RegExp(/\r?\n$|\r$/m);
 
 			if (change.line[0] < change.line[1]) {
 				originalOffset = change.line[1] - change.line[0];
@@ -53,7 +56,7 @@ class ScanResults extends Component {
 					{lines.map(line => (
 						<div className="line">
 							<span>{(line.op === 1) ? '-' : '+'}</span>
-							<code>{line.line}</code>
+							<code>{line.line.replace(lineBreak, '')}</code>
 						</div>
 					))}
 				</div>
@@ -61,7 +64,7 @@ class ScanResults extends Component {
 		};
 
 		return (
-			<div className="pw__scan-result">
+			<div className="pw__scan-results">
 
 				{this.state.error && (
 					<p className="error">{this.state.error.message}</p>
