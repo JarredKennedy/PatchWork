@@ -1,3 +1,5 @@
+@import './variables.scss';
+
 div.pw__scan-results {
 
 	div.diffsView {
@@ -41,10 +43,28 @@ div.pw__scan-results {
 				div.line {
 					white-space: pre;
 
-					span {
+					code {
+						padding: 0 0.2rem;
+						margin: 0;
+						background-color: none;
+						background: none;
+						font-size: inherit;
+					}
+
+					&.add {
+						background-color: $pwDiffAdd;
+					}
+
+					&.rm {
+						background-color: $pwDiffRm;
+					}
+
+					div.op {
 						display: inline-block;
 						text-align: center;
 						width: 1rem;
+						background-color: #efefef;
+						line-height: 1.2rem;
 					}
 				}
 			}

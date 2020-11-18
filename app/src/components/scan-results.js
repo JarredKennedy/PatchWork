@@ -54,8 +54,8 @@ class ScanResults extends Component {
 			return (
 				<div key={`${file}:${change.line[0]}:${change.line[1]}`} className="change">
 					{lines.map(line => (
-						<div className="line">
-							<span>{(line.op === 1) ? '-' : '+'}</span>
+						<div className={`line ${line.op === 1 ? 'rm' : 'add'}`}>
+							<div className="op">{(line.op === 1) ? '-' : '+'}</div>
 							<code>{line.line.replace(lineBreak, '')}</code>
 						</div>
 					))}
