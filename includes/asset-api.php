@@ -161,6 +161,10 @@ function patchwork_locate_asset_original_source( PatchWork\Asset $asset ) {
 		$repo = new PatchWork\WP_Org_Repo();
 		$info = $repo->get_asset_info( $asset );
 
+		if ( is_wp_error( $info ) ) {
+			return $info;
+		}
+
 		$version = $asset->get_version();
 
 		if ( version_compare( $info['version'], $version, '=' ) ) {
@@ -170,8 +174,34 @@ function patchwork_locate_asset_original_source( PatchWork\Asset $asset ) {
 			$location['host'] = 'remote';
 			$location['target'] = $info['versions'][$version];
 		} else {
-			// Version was not found.
-			return false;
+			// The asset existsing in the WordPress repo, but the currently installed version isn't available.
+			$error = new WP_Error(
+				'pw_asset_version_unavailable',
+				sprintf(
+					__( '%s was found in the wordpress.org repository, but a package for version %s was not available.', 'patchwork' ),
+					$asset->get_name(),
+					$version
+				)
+			);
+
+			return $error;
+		}
+	} elseif ( $location['host'] === 'local' ) {
+		if ( !isset( $location['target'] ) || !file_exists( $location['target'] ) ) {
+			// Remove the location of the asset from the cache.
+			unset( $source_cache[$asset_id] );
+			update_option( 'patchwork_original_asset_sources', $source_cache );
+
+			$error = new WP_Error(
+				'pw_asset_removed',
+				sprintf(
+					__( 'A local package was available for %s version %s but has been removed.', 'patchwork' ),
+					$asset->get_name(),
+					$version
+				)
+			);
+
+			return $error;
 		}
 	}
 
@@ -180,4 +210,29 @@ function patchwork_locate_asset_original_source( PatchWork\Asset $asset ) {
 	update_option( 'patchwork_original_asset_sources', $source_cache );
 
 	return $location;
+}
+
+/**
+ * 
+ */
+function patchwork_set_local_asset_source( PatchWork\Asset $asset, $package_path, $override = true ) {
+	$source_cache = get_option( 'patchwork_original_asset_sources', array() );
+	$asset_id = $asset->get_id();
+
+	if ( ! $override && isset( $source_cache[$asset_id] ) ) {
+		return;
+	}
+
+	if ( ! file_exists( $package_path ) ) {
+		return;
+	}
+
+	$location = [
+		'host'		=> 'local',
+		'target'	=> $package_path
+	];
+
+	$source_cache[$asset_id] = $location;
+	update_option( 'patchwork_original_asset_sources', $source_cache );
+
 }

@@ -55,6 +55,18 @@ class REST_Scan_Controller extends WP_REST_Controller {
 				)
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<asset>(plugin|theme|anon):[a-zA-Z0-9\/\.-]+(:[a-zA-Z0-9\.-]+)?)/upload',
+			array(
+				array(
+					'methods'				=> WP_REST_Server::CREATABLE,
+					'callback'				=> array( $this, 'upload' ),
+					'permission_callback'	=> array( $this, 'permissions_check' )
+				)
+			)
+		);
 	}
 
 	public function prescan( $request ) {
@@ -67,18 +79,22 @@ class REST_Scan_Controller extends WP_REST_Controller {
 
 		$scan_data = patchwork_prescan_asset( $asset );
 
-		if ( ! $scan_data ) {
-			return new \WP_Error( 'prescan_error', "Couldn't prescan for some reason" );
+		if ( is_wp_error( $scan_data ) ) {
+			return $scan_data;
 		}
 
 		$scan_data['token'] = $scan_token;
 		$scan_data['asset_id'] = $tai;
+		
+		if ( ! isset( $scan_data['status'] ) ) {
+			$scan_data['status'] = is_null( $scan_data['changed_files'] ) ? 'unchanged' : 'modified';
+		}
 
 		set_transient( 'patchwork_scan_data_' . $scan_token, $scan_data, HOUR_IN_SECONDS );
 
 		return array(
 			'token'		=> $scan_token,
-			'status'	=> is_null( $scan_data['changed_files'] ) ? 'unchanged' : 'modified'
+			'status'	=> $scan_data['status']
 		);
 	}
 
@@ -179,6 +195,43 @@ class REST_Scan_Controller extends WP_REST_Controller {
 		return array(
 			'patch_file'	=> $final_path,
 			'patch'			=> $patch_header
+		);
+	}
+
+	/**
+	 * Upload an original asset package instead of searching the wordpress
+	 * repositories.
+	 * 
+	 * @since 0.1.0
+	 * 
+	 * @param \WP_REST_Request $request
+	 */
+	public function upload( $request ) {
+		$tai = $request->get_param( 'asset' );
+		$asset = patchwork_get_asset( $tai );
+		$files = $request->get_file_params();
+
+		if ( empty( $files ) || !is_array( $files ) || !isset( $files['package'] ) ) {
+			return new \WP_Error( 'scan_upload_error', 'Package file is required' );
+		}
+
+		$overrides = array(
+			'test_form' => false,
+			'test_size' => false
+		);
+		
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+
+		$file = wp_handle_upload( $files['package'], $overrides );
+
+		// Check that the file is a valid zip
+		// Check that it has a header
+		// Check that the version is the same as the installed version.
+
+		patchwork_set_local_asset_source( $asset, $file['file'] );
+
+		return array(
+			'file'	=> $file
 		);
 	}
 

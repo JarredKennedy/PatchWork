@@ -5,6 +5,11 @@
 	margin: 0 auto;
 	width: 550px;
 	background-color: white;
+	transition: width linear 0.2s;
+
+	&.inspecting {
+		width: 100%;
+	}
 
 	>div {
 		box-sizing: border-box;

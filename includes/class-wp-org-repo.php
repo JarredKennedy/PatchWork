@@ -3,6 +3,7 @@
 namespace PatchWork;
 
 use PatchWork\Types\Zip_CDH;
+use \WP_Error;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -29,6 +30,22 @@ class WP_Org_Repo {
 		$url .= '.json';
 
 		$api_response = wp_remote_get( $url );
+
+		if ( is_wp_error( $api_response ) ) {
+			return $api_response;
+		}
+
+		if ( wp_remote_retrieve_response_code( $api_response ) == 404 ) {
+			$error = new WP_Error(
+				'pw_asset_not_found',
+				sprintf(
+					__( '%s was not found in the wordpress.org repository.', 'patchwork' ),
+					$asset->get_name()
+				)
+			);
+
+			return $error;
+		}
 
 		$info = wp_remote_retrieve_body( $api_response );
 		$info = json_decode( $info, true );

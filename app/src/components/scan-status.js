@@ -1,0 +1,17 @@
+export default {
+    STATUS_NONE:           0,
+
+    STATUS_SCANNING:       1,
+    STATUS_PRESCAN:        2,
+    STATUS_EXTRACTING:     3,
+
+    STATUS_PRESCANNED:     4,
+    STATUS_SCANNED:        5,
+    STATUS_EXTRACTED:      6,
+
+    STATUS_FAILED_PRESCAN: 7,
+    STATUS_FAILED_SCAN:    8,
+    STATUS_FAILED_EXTRACT: 9,
+
+    STATUS_NOT_FOUND:      10
+};

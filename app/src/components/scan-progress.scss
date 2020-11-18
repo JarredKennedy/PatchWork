@@ -32,6 +32,11 @@ div.pw__scan-progress {
 					background-color: #CCCCCC;
 					color: #F1F1F1;
 				}
+
+				&.stop {
+					background-color: $pwDanger;
+					color: $pwDangerText;
+				}
 			}
 		}
 

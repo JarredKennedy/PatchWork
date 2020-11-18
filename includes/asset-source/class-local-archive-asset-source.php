@@ -135,8 +135,4 @@ class Local_Archive_Asset_Source implements Asset_Source {
 		return $cdh_list;
 	}
 
-	protected function download_archive() {
-		
-	}
-
 }

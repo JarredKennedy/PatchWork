@@ -3,4 +3,12 @@ div.pw__scan-asset-selector {
 	max-height: 400px;
 	overflow-y: auto;
 	border: 1px solid #DFDFDF;
+	padding: 0;
+
+	table {
+		width: 100%;
+		box-sizing: border-box;
+		border-width: 0;
+		border-spacing: 0;
+	}
 }

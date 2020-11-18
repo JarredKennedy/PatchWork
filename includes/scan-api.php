@@ -8,12 +8,26 @@ function patchwork_prescan_asset( $asset ) {
 	$local_source = new PatchWork\Asset_Source\Installed_Asset_Source( $asset->get_path() );
 	$original_location = patchwork_locate_asset_original_source( $asset );
 
-	if ( ! $original_location ) {
-		// TODO: return a WP_Error or something.
-		return false;
+	if ( is_wp_error( $original_location ) ) {
+		$need_upload = array( 'pw_asset_not_found', 'pw_asset_version_unavailable', 'pw_asset_removed' );
+
+		if ( count( array_intersect( $need_upload, $original_location->get_error_codes() ) ) > 0 ) {
+			return array(
+				'status' => 'missing_original'
+			);
+		}
+
+		die(var_dump( $original_location ));
+
+		// Some other error.
+		return new \WP_Error( 'pw_read_file_tree_failure', __( 'Failed to read current asset files.', 'patchwork' ) );
 	}
 
-	$local_file_tree = $local_source->get_file_tree();
+	try {
+		$local_file_tree = $local_source->get_file_tree();
+	} catch ( \RuntimeException $error ) {
+		return new \WP_Error( 'pw_read_file_tree_failure', __( 'Failed to read current asset files.', 'patchwork' ) );
+	}
 
 	$zip_reader = new PatchWork\Zip_Reader();
 
@@ -25,7 +39,11 @@ function patchwork_prescan_asset( $asset ) {
 		$original_source = new PatchWork\Asset_Source\Remote_Archive_Asset_Source( $zip_reader, $original_location['target'], $estimated_cdh_size );
 	}
 
-	$original_file_tree = $original_source->get_file_tree();
+	try {
+		$original_file_tree = $original_source->get_file_tree();
+	} catch ( \RuntimeException $error ) {
+		return new \WP_Error( 'pw_read_file_tree_failure', __( 'Failed to read original asset files.', 'patchwork' ) );
+	}
 
 	$changed_files = patchwork_diff_file_trees( $original_file_tree, $local_file_tree );
 

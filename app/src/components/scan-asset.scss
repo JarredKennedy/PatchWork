@@ -1,38 +1,84 @@
-div.pw__scan-asset {
-	display: flex;
-	justify-content: left;
-	align-items: flex-start;
-	border-bottom: 1px solid #DFDFDF;
+@import './variables.scss';
+
+tr.pw__scan-asset {
+
+	td {
+		padding: 0.5rem;
+		border-bottom: 1px solid #DFDFDF;
+
+		&.asset-logo {
+			// background-color: #F7FFFF;
+			border-right: 1px solid #DFDFDF;
+			width: 100px;
+			
+			svg {
+				margin: 10px;
+				fill: #777777;
+			}
+		}
+
+		&.asset-details {
+			vertical-align: top;
+
+			div.name {
+				font-size: 1.1rem;
+			}
+	
+			div.status-text {
+				font-size: 1rem;
+				padding: 0.25rem 0;
+			}
+
+			div.recourse {
+				padding: 0.25rem 0;
+
+				a {
+					cursor: pointer;
+				}
+			}
+		}
+
+		&.asset-action {
+			vertical-align: middle;
+			width: 50px;
+
+			.icon-button {
+				border: 1px solid #888888;
+				border-radius: 50%;
+				height: 35px;
+				width: 35px;
+	
+				&.queued {
+					background-color: $pwPrimary;
+					border-color: transparent;
+	
+					svg {
+						fill: $pwPrimaryText;
+					}
+	
+					&.hover {
+						background-color: $pwDanger;
+	
+						svg {
+							fill: $pwDangerText;
+						}
+					}
+				}
+	
+				svg {
+					fill: #888888;
+				}
+	
+				&:hover {
+					cursor: pointer;
+				}
+			}
+		}
+	}
 
 	&:last-of-type {
-		border-bottom-width: 0px;
-	}
-
-	div.asset-logo {
-		flex: 0 0 100px;
-		height: 100px;
-		box-sizing: border-box;
-		background-color: #F7FFFF;
-		border-right: 1px solid #DFDFDF;
-		
-		svg {
-			margin: 10px;
-			fill: #777777;
+		td {
+			border-bottom-width: 0;
 		}
-	}
-
-	div.asset-details {
-		padding: 10px;
-		flex: 1 1 auto;
-		box-sizing: border-box;
-
-		div.name {
-			font-size: 1.1rem;
-		}
-	}
-
-	div.asset-action {
-		flex: 0 0 50px;
-		box-sizing: border-box;
 	}
 }

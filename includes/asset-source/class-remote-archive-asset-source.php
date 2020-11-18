@@ -38,9 +38,8 @@ class Remote_Archive_Asset_Source implements Asset_Source {
 			return $this->file_tree;
 		}
 
-		// try {
 		$cdh_list = $this->read_package_cdh();
-		// } catch (\RuntimeException $error) {}
+
 
 		$file_tree = patchwork_cdh_to_file_tree( $cdh_list );
 
@@ -98,6 +97,10 @@ class Remote_Archive_Asset_Source implements Asset_Source {
 			'headers'	=> $headers,
 			'timeout'	=> 15
 		) );
+
+		if ( is_wp_error( $response ) ) {
+			throw new \RuntimeException( 'Failed to get remote package' );
+		}
 
 		$data = wp_remote_retrieve_body( $response );
 		$content_length = (int) wp_remote_retrieve_header( $response, 'Content-Length' );
