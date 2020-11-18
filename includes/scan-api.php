@@ -17,8 +17,6 @@ function patchwork_prescan_asset( $asset ) {
 			);
 		}
 
-		die(var_dump( $original_location ));
-
 		// Some other error.
 		return new \WP_Error( 'pw_read_file_tree_failure', __( 'Failed to read current asset files.', 'patchwork' ) );
 	}
