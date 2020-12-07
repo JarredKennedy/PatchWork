@@ -234,7 +234,7 @@ function patchwork_diff_files( PatchWork\Types\File_Tree_Diff $changed_files, Pa
 		}
 	} );
 
-	$differ = new PatchWork\Diff\Differ();
+	$differ = new PatchWork\Difflib_Differ();
 
 	$diffs = array();
 	foreach ( $flat_tree as $file ) {
