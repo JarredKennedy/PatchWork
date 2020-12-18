@@ -30,7 +30,7 @@ const ScanAssetSelector = props => (
 					} else if (props.results.hasOwnProperty(asset.id)) {
 						status = props.results[asset.id].status;
 
-						if (props.results[asset.id].error) {
+						if (status === ScanStatus.STATUS_NOT_FOUND) {
 							action = () => props.uploadOriginal(asset.id);
 						}
 					}

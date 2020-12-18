@@ -113,7 +113,7 @@ export default (WrappedComponent) => class extends Component {
 						[assetId]: {
 							...this.state.results[assetId],
 							status: STATUS_FAILED,
-							error: error.messaeg
+							error: error.message
 						}
 					}		
 				});
