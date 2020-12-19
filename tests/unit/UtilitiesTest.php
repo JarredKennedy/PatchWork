@@ -49,4 +49,15 @@ class UtilitiesTest extends TestCase {
 		$this->assertEquals( $expected_tree, $file_tree );
 	}
 
+	public function test_file_tree_filter() {
+		$tree = include SUPPORT_DIR . 'plugin-file-tree.php';
+		$tree = unserialize( $tree );
+
+		$containing_some = patchwork_file_tree_filter( $tree, function( $node, $path, $is_file ) {
+			return ! $is_file || ( stripos( $node->name, 'some' ) !== false );
+		} );
+
+		pretty_print_tree( $containing_some );
+	}
+
 }

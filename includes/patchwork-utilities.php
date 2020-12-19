@@ -111,6 +111,24 @@ function patchwork_get_patch_writer( $patch_file_version ) {
 }
 
 /**
+ * Returns an array of files to ignore when scanning.
+ * 
+ * @since 0.1.0
+ * 
+ * @return array
+ */
+function patchwork_get_ignored_files() {
+	return apply_filters( 'patchwork_ignored_files', array(
+		'.git/',
+		'.github/',
+		'.gitattributes',
+		'.gitignore',
+		'.php_cs',
+		'.travis.yml'
+	) );
+}
+
+/**
  * Returns the estimated Central Directory Header (CDH) size in bytes.
  * 
  * @see docs/glossary.md	For a definition of CDH.
@@ -474,4 +492,53 @@ function patchwork_walk_file_tree( PatchWork\Types\File_Tree $tree, $callback, $
 
 		$node = $node->sibling;
 	}
+}
+
+/**
+ * Walk a file tree, call $callback, if it returns true, keep the node, otherwise, trim that node
+ * from the tree.
+ * 
+ * NOTE: this function does not create new PatchWork\Types\File_Tree instances, it
+ * will return the instances which compose $tree. If you need to keep your source tree and have a
+ * filtered copy, first clone $tree and pass that to this function.
+ * 
+ * @since 0.1.0
+ * 
+ * @param PatchWork\Types\File_Tree $tree
+ * @param callable $callback
+ * @param string $path
+ * 
+ * @return PatchWork\Types\File_Tree
+ */
+function patchwork_file_tree_filter( PatchWork\Types\File_Tree $tree, $callback, $path = '' ) {
+	if ( ! is_callable( $callback ) ) {
+		// TODO: throw or something
+		return;
+	}
+
+	$node = $tree;
+	$root = null;
+	$previous = null;
+	while ( $node ) {
+
+		if ( call_user_func( $callback, $node, $path, ( $node->checksum > 0 ) ) ) {
+			if ( ! $root ) {
+				$root = $node;
+			}
+
+			if ( $previous ) {
+				$previous->sibling = $node;
+			}
+
+			$previous = $node;
+
+			if ( $node->first_child ) {
+				$node->first_child = patchwork_file_tree_filter( $node->first_child, $callback, $path . trailingslashit( $node->name ) );
+			}
+		}
+
+		$node = $node->sibling;
+	}
+
+	return $root;
 }
