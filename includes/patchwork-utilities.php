@@ -373,28 +373,6 @@ function patchwork_shallow_sort_file_tree( $tree ) {
 	return $tree;
 }
 
-// function patchwork_file_tree_sorted_merge( $tree_a, $tree_b ) {
-// 	$result = null;
-
-// 	if ( ! $tree_a ) {
-// 		return $tree_b;
-// 	}
-
-// 	if ( ! $tree_b ) {
-// 		return $tree_a;
-// 	}
-
-// 	if ( strcmp( $tree_a->name, $tree_b->name ) < 1 ) {
-// 		$result = $tree_a;
-// 		$result->sibling = patchwork_file_tree_sorted_merge( $tree_a->sibling, $tree_b );
-// 	} else {
-// 		$result = $tree_b;
-// 		$result->sibling = patchwork_file_tree_sorted_merge( $tree_a, $tree_b->sibling );
-// 	}
-
-// 	return $result;
-// }
-
 function patchwork_file_tree_sorted_merge( $tree_a, $tree_b ) {
 	$dummy = new PatchWork\Types\File_Tree;
 	$tail = $dummy;
