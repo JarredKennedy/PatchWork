@@ -90,13 +90,39 @@ class Local_Archive_Asset_Source implements Asset_Source {
 		}
 
 		if ( ! $found_cdh ) {
+			// When searching for the end CDH record, do not read back any further than this
+			// many bytes from the end of the file.
+			$max_trackback_bytes = 2048;
+
 			$end_cdh_signature = pack( 'C*', 0x50, 0x4b, 0x05, 0x06 );
 
 			fseek( $archive, -22, SEEK_END );
 
 			if ( fread( $archive, 4 ) != $end_cdh_signature ) {
-				fclose( $archive );
-				throw new \RuntimeException( 'Failed to find end cdh record' );
+				$bytes_read = 0;
+				$bytes_rewind = 128;
+				$last_buffer = null;
+				$sig_at = false;
+
+				while( $bytes_read < $max_trackback_bytes && ! feof( $archive ) ) {
+					fseek( $archive, -1 * ( $bytes_read + $bytes_rewind ), SEEK_END );
+
+					$sig_at = strpos( fread( $archive, $bytes_rewind ), $end_cdh_signature );
+
+					if ( $sig_at !== false ) {
+						break;
+					}
+
+					$bytes_read += $bytes_rewind;
+				}
+
+				if ( $sig_at === false ) {
+					fclose( $archive );
+					throw new \RuntimeException( 'Failed to find end cdh record' );
+				}
+
+				// Seek to just after the signature.
+				fseek( $archive, -1 * ( $bytes_read + ( $bytes_rewind - $sig_at ) - 4 ), SEEK_END );
 			}
 
 			fseek( $archive, 8, SEEK_CUR );
