@@ -158,6 +158,8 @@ class Local_Archive_Asset_Source implements Asset_Source {
 			$cdh_list[] = $cdh;
 		}
 
+		fclose( $archive );
+
 		return $cdh_list;
 	}
 
